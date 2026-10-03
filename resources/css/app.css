@@ -1,9 +1,273 @@
-@import 'tailwindcss';
+@import 'bootstrap/dist/css/bootstrap.min.css';
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
+/*
+ * BrokerPorez: lična poreska knjiga. Vizuelni rečnik je preuzet sa papirnih
+ * poreskih obrazaca (polja u kućicama, numerisani delovi), bez dekoracije.
+ */
+:root {
+    --papir: #fafaf7;
+    --mastilo: #1c2433;
+    --pecat: #2b4c9b;
+    --pecat-svetao: #e8edf8;
+    --dobit: #2f7d4f;
+    --gubitak: #b3261e;
+    --linija: #d5dae2;
+    --tiho: #5b6475;
 
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --bs-body-font-family: 'Instrument Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --bs-body-bg: var(--papir);
+    --bs-body-color: var(--mastilo);
+    --bs-secondary-color: var(--tiho);
+    --bs-border-color: var(--linija);
+    --bs-primary: var(--pecat);
+    --bs-primary-rgb: 43, 76, 155;
+    --bs-link-color: var(--pecat);
+    --bs-link-color-rgb: 43, 76, 155;
+    --bs-link-hover-color: #1f3874;
+    --bs-success-rgb: 47, 125, 79;
+    --bs-danger-rgb: 179, 38, 30;
+    --bs-border-radius: 0.25rem;
+}
+
+.btn-primary {
+    --bs-btn-bg: var(--pecat);
+    --bs-btn-border-color: var(--pecat);
+    --bs-btn-hover-bg: #1f3874;
+    --bs-btn-hover-border-color: #1f3874;
+    --bs-btn-active-bg: #1a2f63;
+    --bs-btn-disabled-bg: var(--pecat);
+    --bs-btn-disabled-border-color: var(--pecat);
+}
+
+.btn-outline-primary {
+    --bs-btn-color: var(--pecat);
+    --bs-btn-border-color: var(--pecat);
+    --bs-btn-hover-bg: var(--pecat);
+    --bs-btn-hover-border-color: var(--pecat);
+    --bs-btn-active-bg: var(--pecat);
+}
+
+.navbar {
+    background: #fff;
+}
+
+.auth-kartica {
+    max-width: 440px;
+}
+
+.kod-unos {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.75rem;
+}
+
+/* ---------- Dashboard ---------- */
+
+.knjiga {
+    max-width: 1440px;
+}
+
+.knjiga-naslov {
+    font-size: 1.75rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 0;
+}
+
+.knjiga-tabovi {
+    border-bottom: 2px solid var(--mastilo);
+    gap: 0.25rem;
+}
+
+.knjiga-tabovi .nav-link {
+    color: var(--tiho);
+    border: 0;
+    border-bottom: 3px solid transparent;
+    border-radius: 0;
+    margin-bottom: -2px;
+    padding: 0.6rem 0.9rem;
+    font-weight: 500;
+}
+
+.knjiga-tabovi .nav-link:hover {
+    color: var(--mastilo);
+}
+
+.knjiga-tabovi .nav-link.active {
+    color: var(--mastilo);
+    background: transparent;
+    border-bottom-color: var(--pecat);
+}
+
+.iznos,
+.tabela-knjiga td.broj,
+.tabela-knjiga th.broj {
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.dobit { color: var(--dobit); }
+.gubitak { color: var(--gubitak); }
+
+/*
+ * Iznos za uplatu, ispisan u kućicama kao na obrascu. Ovo je jedini "glasan"
+ * element; sve ostalo je mirno.
+ */
+.polje-obrasca {
+    border: 1.5px solid var(--mastilo);
+    background: #fff;
+    padding: 1rem 1.25rem 1.1rem;
+}
+
+.polje-obrasca-oznaka {
+    color: var(--tiho);
+    font-size: 0.875rem;
+    margin-bottom: 0.6rem;
+}
+
+.kucice {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: flex-end;
+    gap: 0;
+}
+
+.kucice .kucica {
+    display: inline-flex;
+    justify-content: center;
+    min-width: 1.45em;
+    padding: 0.05em 0.1em 0;
+    border-left: 1px solid var(--mastilo);
+    border-bottom: 1px solid var(--mastilo);
+    font-size: clamp(1.4rem, 2.6vw, 2.1rem);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.15;
+}
+
+.kucice .kucica.kraj-grupe {
+    border-right: 1px solid var(--mastilo);
+}
+
+.kucice .razdelnik {
+    align-self: flex-end;
+    padding: 0 0.15em;
+    font-size: clamp(1.4rem, 2.6vw, 2.1rem);
+    font-weight: 600;
+    line-height: 1.15;
+}
+
+.kucice .valuta {
+    margin-left: 0.6rem;
+    font-size: 1rem;
+    color: var(--tiho);
+}
+
+.stavka {
+    border-top: 1px solid var(--linija);
+    padding: 0.75rem 0;
+}
+
+.stavka dt {
+    font-weight: 400;
+    color: var(--tiho);
+    font-size: 0.875rem;
+}
+
+.stavka dd {
+    margin: 0.15rem 0 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.tabela-knjiga {
+    --bs-table-bg: #fff;
+    --bs-table-hover-bg: var(--pecat-svetao);
+    font-size: 0.8125rem;
+    margin-bottom: 0;
+}
+
+.tabela-knjiga > :not(caption) > * > * {
+    padding: 0.45rem 0.5rem;
+}
+
+.tabela-knjiga thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #fff;
+    font-weight: 600;
+    font-size: 0.8125rem;
+    color: var(--tiho);
+    vertical-align: bottom;
+    border-bottom: 1.5px solid var(--mastilo);
+    white-space: normal;
+}
+
+.tabela-knjiga tfoot td {
+    border-top: 1.5px solid var(--mastilo);
+    font-weight: 600;
+}
+
+.tabela-omot {
+    max-height: 70vh;
+    overflow: auto;
+    border: 1px solid var(--linija);
+    background: #fff;
+}
+
+.tip-oznaka {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.1rem 0.4rem;
+    border: 1px solid currentColor;
+    border-radius: 0.2rem;
+}
+
+.tip-kupovina { color: var(--tiho); }
+.tip-prodaja { color: var(--pecat); }
+
+.red-alokacija td {
+    background: #f4f6fa !important;
+    color: var(--tiho);
+    font-size: 0.8125rem;
+}
+
+.dugme-rasklopi {
+    border: 0;
+    background: none;
+    padding: 0 0.25rem;
+    color: var(--pecat);
+    line-height: 1;
+}
+
+.dugme-rasklopi[aria-expanded='true'] .strelica {
+    display: inline-block;
+    transform: rotate(90deg);
+}
+
+.strelica {
+    display: inline-block;
+    transition: transform 0.15s ease;
+}
+
+.upozorenje-red td:first-child {
+    box-shadow: inset 3px 0 0 #d39b1e;
+}
+
+.prazno {
+    border: 1.5px dashed var(--linija);
+    padding: 3rem 1.5rem;
+    text-align: center;
+    background: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .strelica { transition: none; }
+}
+
+:focus-visible {
+    outline: 2px solid var(--pecat);
+    outline-offset: 2px;
 }
