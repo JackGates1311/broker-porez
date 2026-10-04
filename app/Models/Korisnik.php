@@ -48,6 +48,14 @@ class Korisnik extends Authenticatable
     }
 
     /**
+     * @return HasMany<TokenResetLozinke, $this>
+     */
+    public function tokeniResetLozinke(): HasMany
+    {
+        return $this->hasMany(TokenResetLozinke::class, 'korisnik_id');
+    }
+
+    /**
      * @return HasMany<Transakcija, $this>
      */
     public function transakcije(): HasMany

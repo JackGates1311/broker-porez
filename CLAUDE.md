@@ -30,7 +30,7 @@ vendor/bin/pint --test                      # check formatting only
 
 ## Database: read this before touching data code
 
-- **The schema is raw SQL, not migrations**, applied by hand to MySQL (`broker_porez`), in this order: `sql/broker_proezi_create_tables.sql` (domain), `sql/auth/korisnici_verifikacija.sql` (verification columns + `verifikacioni_kodovi`), `sql/porezi/porezi_dopune.sql` (`transakcije.kurs` nullable, `kurs_porez`, `jedinstveni_kljuc` dedupe key, `poreski_profil`), `sql/session/laravel_session_table_create.sql`, `sql/cache/laravel_cache_table_create.sql`. `database/migrations/` holds only the stock Laravel tables and is not run against MySQL. New tables go in a new `sql/` file, not a migration.
+- **The schema is raw SQL, not migrations**, applied by hand to MySQL (`broker_porez`), in this order: `sql/broker_proezi_create_tables.sql` (domain), `sql/auth/korisnici_verifikacija.sql` (verification columns + `verifikacioni_kodovi`), `sql/auth/reset_lozinke.sql` (`tokeni_reset_lozinke`), `sql/porezi/porezi_dopune.sql` (`transakcije.kurs` nullable, `kurs_porez`, `jedinstveni_kljuc` dedupe key, `poreski_profil`), `sql/session/laravel_session_table_create.sql`, `sql/cache/laravel_cache_table_create.sql`. `database/migrations/` holds only the stock Laravel tables and is not run against MySQL. New tables go in a new `sql/` file, not a migration.
 - `.env` uses MySQL (`broker_porez`), with `SESSION_DRIVER`, `CACHE_STORE` and `QUEUE_CONNECTION` all set to `database`. `phpunit.xml` overrides this to **in-memory SQLite** with array cache and session drivers. Tests therefore only see tables created by migrations; the domain tables won't exist in tests unless migrations are added for them.
 - The cache table matters: `RateLimiter` (login throttling, code resend) uses `CACHE_STORE=database`.
 - Domain tables use `kreirano_at` and no `updated_at`. Eloquent models for them need custom timestamp handling (e.g. `const CREATED_AT = 'kreirano_at'; const UPDATED_AT = null;`) and explicit `$table` names, because Serbian plurals don't follow Laravel's inflection.
@@ -63,7 +63,8 @@ All money math uses `BcMath\Number` via `App\Support\Decimal` (`Decimal::format(
 - The password column is `lozinka_hash`, wired through `protected $authPasswordName` plus a `hashed` cast. So `Auth::attempt(['email' => …, 'password' => …])` works unchanged; assign the plain password to `lozinka_hash` and the cast hashes it.
 - Email verification is custom (not Laravel's `MustVerifyEmail`). `App\Services\VerifikacijaEmailaService` issues a hashed 6-digit code in `verifikacioni_kodovi` (15 min, max 5 attempts, one active code per user). It sets `korisnici.email_verifikovan_at` on success.
 - Routes behind the `verifikovan` middleware alias (`App\Http\Middleware\EmailVerifikovan`, registered in `bootstrap/app.php`) require a verified email. Unverified users are sent to `/verifikacija`.
-- `MAIL_MAILER=log`, so verification codes appear in `storage/logs/laravel.log`.
+- Password reset is custom too (not Laravel's `Password` broker). `App\Services\ResetLozinkeService` stores a sha256 of a random link token in `tokeni_reset_lozinke` (15 min, single use, one active per user) and never reveals whether an email is registered. A successful reset also marks the email verified and rotates `remember_token`.
+- `MAIL_MAILER=log`, so verification codes and reset links appear in `storage/logs/laravel.log`.
 - Validation messages come from `lang/sr/validation.php` (`APP_LOCALE=sr`). It covers only the rules in use, so add messages there when you use a new rule.
 
 ## Frontend

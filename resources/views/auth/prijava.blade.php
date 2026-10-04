@@ -44,6 +44,9 @@
             <p class="text-center text-body-secondary mt-4 mb-0">
                 Nemate nalog? <a href="{{ route('registracija') }}">Registrujte se</a>
             </p>
+            <p class="text-center mt-2 mb-0">
+                <a href="{{ route('lozinka.zaboravljena') }}">Zaboravljena lozinka?</a>
+            </p>
         </div>
     </div>
 @endsection

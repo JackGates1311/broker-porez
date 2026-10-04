@@ -35,6 +35,15 @@ class AuthStraniceTest extends TestCase
             ->assertSee('name="lozinka"', escape: false);
     }
 
+    public function test_stranica_za_zaboravljenu_lozinku_se_prikazuje(): void
+    {
+        $this->withoutVite()
+            ->get(route('lozinka.zaboravljena'))
+            ->assertOk()
+            ->assertSee('Pošalji link')
+            ->assertSee('name="email"', escape: false);
+    }
+
     public function test_stranica_za_registraciju_se_prikazuje(): void
     {
         $this->withoutVite()

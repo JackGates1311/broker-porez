@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\Auth\PrijavaController;
 use App\Http\Controllers\Auth\RegistracijaController;
+use App\Http\Controllers\Auth\ResetLozinkeController;
 use App\Http\Controllers\Auth\VerifikacijaController;
+use App\Http\Controllers\Auth\ZaboravljenaLozinkaController;
 use App\Http\Controllers\Porezi\DashboardController;
 use App\Http\Controllers\Porezi\DividendeController;
 use App\Http\Controllers\Porezi\IzvozController;
@@ -19,6 +21,13 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/prijava', [PrijavaController::class, 'create'])->name('prijava');
     Route::post('/prijava', [PrijavaController::class, 'store']);
+
+    Route::get('/zaboravljena-lozinka', [ZaboravljenaLozinkaController::class, 'create'])->name('lozinka.zaboravljena');
+    Route::post('/zaboravljena-lozinka', [ZaboravljenaLozinkaController::class, 'store']);
+    Route::get('/zaboravljena-lozinka/poslato', [ZaboravljenaLozinkaController::class, 'poslato'])->name('lozinka.poslato');
+
+    Route::get('/resetovanje-lozinke/{token}', [ResetLozinkeController::class, 'create'])->name('lozinka.reset');
+    Route::post('/resetovanje-lozinke', [ResetLozinkeController::class, 'store'])->name('lozinka.reset.sacuvaj');
 });
 
 Route::middleware('auth')->group(function () {

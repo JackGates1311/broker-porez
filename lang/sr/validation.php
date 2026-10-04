@@ -69,6 +69,7 @@ return [
         'prebivaliste_sifra' => 'šifra opštine',
         'sifra_vrste_prihoda' => 'šifra vrste prihoda',
         'telefon' => 'telefon',
+        'token' => 'link',
         'vrsta_prijave' => 'vrsta prijave',
         'zemlja_rezidentstva' => 'zemlja rezidentstva',
     ],
