@@ -11,7 +11,7 @@
 @section('knjiga')
     <div class="row g-4">
         <div class="col-12 order-2">
-            @if ($redovi->isEmpty())
+            @if ($ukupno === 0)
                 <div class="prazno">
                     <p class="mb-2">Nema isplaćenih dividendi u periodu „{{ $period->naziv() }}”.</p>
                     <a href="{{ route('uvoz') }}">Uvezi Trading 212 izvod</a>
@@ -20,63 +20,17 @@
                 {{-- Šifre za PP OPO; dugmad u tabeli šalju ovu formu na adresu konkretne dividende. --}}
                 <form id="ppopo-forma" method="GET" action="#"></form>
 
-                <div class="tabela-omot">
-                    <table class="table table-sm table-hover tabela-knjiga align-middle">
-                        <thead>
-                            <tr>
-                                <th scope="col">Datum isplate (SRB)</th>
-                                <th scope="col">Simbol</th>
-                                <th scope="col" class="broj">Količina</th>
-                                <th scope="col" class="broj">Neto po akciji</th>
-                                <th scope="col" class="broj">Porez u inostr.</th>
-                                <th scope="col">Valuta</th>
-                                <th scope="col" class="broj">Kurs NBS</th>
-                                <th scope="col" class="broj">Stopa u inostr.</th>
-                                <th scope="col" class="broj">Bruto</th>
-                                <th scope="col" class="broj">Neto</th>
-                                <th scope="col" class="broj">Bruto (RSD)</th>
-                                <th scope="col" class="broj">Porez 15% (RSD)</th>
-                                <th scope="col" class="broj">Za uplatu (RSD)</th>
-                                <th scope="col"><span class="visually-hidden">Obrazac</span></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($redovi as $red)
-                                <tr @class(['upozorenje-red' => $red->bez_kursa])>
-                                    <td class="text-nowrap">{{ $red->vreme->format('d.m.Y') }}</td>
-                                    <td><span class="fw-semibold" title="{{ $red->naziv }}">{{ $red->simbol }}</span><div class="small text-body-secondary">{{ $red->isin }}</div></td>
-                                    <td class="broj">{{ Decimal::formatKolicina($red->kolicina) }}</td>
-                                    <td class="broj">{{ Decimal::format($red->neto_po_akciji, 4) }}</td>
-                                    <td class="broj">{{ Decimal::format($red->porez_po_odbitku) }}</td>
-                                    <td>{{ $red->valuta }}</td>
-                                    <td class="broj">
-                                        @if ($red->kurs){{ Decimal::format($red->kurs, 4) }}@else<span class="text-warning">nema kursa</span>@endif
-                                    </td>
-                                    <td class="broj">{{ Decimal::format($red->obracun->procenatPoreza * 100) }}%</td>
-                                    <td class="broj">{{ Decimal::format($red->obracun->bruto) }}</td>
-                                    <td class="broj">{{ Decimal::format($red->obracun->neto) }}</td>
-                                    <td class="broj">{{ Decimal::format($red->obracun->brutoRsd) }}</td>
-                                    <td class="broj">{{ Decimal::format($red->obracun->porez) }}</td>
-                                    <td class="broj fw-semibold">{{ Decimal::format($red->obracun->zaUplatu) }}</td>
-                                    <td>
-                                        <button type="submit" form="ppopo-forma" class="btn btn-link btn-sm p-0 text-nowrap"
-                                                formaction="{{ route('izvoz.pp-opo', $red->transakcija->id) }}"
-                                                @disabled($red->bez_kursa)>PP OPO</button>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <td colspan="10">Ukupno ({{ $zbir['broj'] }})</td>
-                                <td class="broj">{{ Decimal::format($zbir['bruto_rsd']) }}</td>
-                                <td class="broj">{{ Decimal::format($zbir['porez']) }}</td>
-                                <td class="broj">{{ Decimal::format($zbir['za_uplatu']) }}</td>
-                                <td></td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
+                <x-tabela id="dividende" :tabela="$tabela" :redovi="$redovi" :ukupno="$ukupno" klasa="table-sm align-middle">
+                    <x-slot:podnozje>
+                        <tr>
+                            <td colspan="10">Ukupno za period ({{ $zbir['broj'] }}), bez obzira na pretragu</td>
+                            <td class="broj">{{ Decimal::format($zbir['bruto_rsd']) }}</td>
+                            <td class="broj">{{ Decimal::format($zbir['porez']) }}</td>
+                            <td class="broj">{{ Decimal::format($zbir['za_uplatu']) }}</td>
+                            <td></td>
+                        </tr>
+                    </x-slot:podnozje>
+                </x-tabela>
                 <p class="text-body-secondary small mt-2">
                     Bruto = količina × neto dividenda po akciji + porez plaćen u inostranstvu. Za uplatu je 15% bruto iznosa umanjeno za porez plaćen u inostranstvu.
                 </p>

@@ -210,6 +210,90 @@
     font-weight: 600;
 }
 
+/* Kontrolna traka iznad tabele: pretraga, aktivni sortovi, reset (<x-tabela>). */
+.tabela-kontrole {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.tabela-pretraga {
+    flex: 1 1 18rem;
+    max-width: 30rem;
+}
+
+.tabela-stanje {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.75rem;
+}
+
+.tabela-uputstvo {
+    flex-basis: 100%;
+}
+
+.sort-oznaka {
+    color: var(--mastilo);
+    text-decoration: none;
+    border: 1px solid var(--linija);
+    background: #fff;
+    border-radius: 0.2rem;
+    padding: 0.1rem 0.4rem;
+}
+
+.sort-oznaka:hover {
+    border-color: var(--pecat);
+    color: var(--pecat);
+}
+
+.sort-prioritet {
+    font-weight: 600;
+    color: var(--pecat);
+}
+
+.tabela-knjiga thead th .sort-link {
+    color: inherit;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.25rem;
+}
+
+.tabela-knjiga thead th.broj .sort-link {
+    flex-direction: row-reverse;
+}
+
+.tabela-knjiga thead th .sort-link:hover,
+.tabela-knjiga thead th.sortirano .sort-link {
+    color: var(--mastilo);
+}
+
+.sort-strelica {
+    font-size: 0.7rem;
+    color: var(--linija);
+}
+
+.tabela-knjiga thead th .sort-link:hover .sort-strelica {
+    color: var(--tiho);
+}
+
+.tabela-knjiga thead th.sortirano .sort-strelica {
+    color: var(--pecat);
+}
+
+/* Dok pretraga uživo čeka odgovor, stari rezultati blago izblede (bez treptanja). */
+.tabela-rezultati {
+    transition: opacity 0.15s ease-in-out;
+}
+
+[data-tabela][aria-busy='true'] .tabela-rezultati {
+    opacity: 0.6;
+}
+
 .tabela-omot {
     max-height: 70vh;
     overflow: auto;

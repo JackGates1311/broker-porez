@@ -1,7 +1,7 @@
 import 'bootstrap';
 
 import { initKodUnos, initOdbrojavanje, initPrikazLozinke, initValidacijaFormi } from './auth';
-import { initAutoSlanje, initListeFajlova, initPotvrde } from './dashboard';
+import { initAutoSlanje, initListeFajlova, initPotvrde, initTabele } from './dashboard';
 
 document.addEventListener('DOMContentLoaded', () => {
     initPrikazLozinke();
@@ -11,4 +11,5 @@ document.addEventListener('DOMContentLoaded', () => {
     initAutoSlanje();
     initPotvrde();
     initListeFajlova();
+    initTabele();
 });

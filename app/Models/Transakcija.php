@@ -58,10 +58,12 @@ class Transakcija extends Model
      */
     public function scopeTipa(Builder $upit, TipTransakcije ...$tipovi): void
     {
-        $upit->where(function (Builder $q) use ($tipovi) {
+        $kolona = $upit->qualifyColumn('tip_akcije');
+
+        $upit->where(function (Builder $q) use ($tipovi, $kolona) {
             foreach ($tipovi as $tip) {
                 foreach ($tip->sqlObrasci() as $obrazac) {
-                    $q->orWhere('tip_akcije', 'like', $obrazac);
+                    $q->orWhere($kolona, 'like', $obrazac);
                 }
             }
         });

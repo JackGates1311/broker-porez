@@ -6,8 +6,10 @@ use App\Enums\TipTransakcije;
 use App\Models\Korisnik;
 use App\Models\Transakcija;
 use App\Support\Decimal;
+use App\Support\Tabela\Tabela;
 use BcMath\Number;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -18,23 +20,18 @@ use Illuminate\Support\Facades\DB;
 class KapitalnaDobitIzvestaj
 {
     /**
-     * @return array{redovi: Collection<int, object>, zbir: array<string, Number|int>}
+     * Zbir se uvek računa nad celim periodom (to je poreska obaveza); $tabela samo bira
+     * i ređa redove koji se prikazuju, pretragom i sortiranjem u SQL-u.
+     *
+     * @return array{redovi: Collection<int, object>, zbir: array<string, Number|int>, ukupno: int}
      */
-    public function za(Korisnik $korisnik, Period $period): array
+    public function za(Korisnik $korisnik, Period $period, ?Tabela $tabela = null): array
     {
-        $upit = Transakcija::query()
+        $transakcije = $this->upit($korisnik, $period)
             ->with('imovina')
-            ->where('korisnik_id', $korisnik->id)
-            ->whereNotNull('imovina_id')
-            ->tipa(TipTransakcije::Kupovina, TipTransakcije::Prodaja)
-            ->orderBy('vreme_utc')
-            ->orderBy('id');
-
-        if ($granice = $period->utcGranice()) {
-            $upit->whereBetween('vreme_utc', $granice);
-        }
-
-        $transakcije = $upit->get();
+            ->orderBy('transakcije.vreme_utc')
+            ->orderBy('transakcije.id')
+            ->get();
         $alokacije = $this->alokacije($korisnik, $transakcije->pluck('id'));
         $preostalo = DB::table('poreski_lotovi')
             ->where('korisnik_id', $korisnik->id)
@@ -84,7 +81,34 @@ class KapitalnaDobitIzvestaj
             return $red;
         });
 
-        return ['redovi' => $redovi, 'zbir' => $this->zbir($redovi)];
+        return [
+            'redovi' => $tabela?->izaberi(
+                $this->upit($korisnik, $period)->leftJoin('imovina as i', 'i.id', '=', 'transakcije.imovina_id'),
+                'transakcije.id',
+                $redovi->keyBy(fn ($r) => $r->transakcija->id),
+            ) ?? $redovi,
+            'zbir' => $this->zbir($redovi),
+            'ukupno' => $redovi->count(),
+        ];
+    }
+
+    /**
+     * Kupovine i prodaje hartija u periodu.
+     *
+     * @return Builder<Transakcija>
+     */
+    private function upit(Korisnik $korisnik, Period $period): Builder
+    {
+        $upit = Transakcija::query()
+            ->where('transakcije.korisnik_id', $korisnik->id)
+            ->whereNotNull('transakcije.imovina_id')
+            ->tipa(TipTransakcije::Kupovina, TipTransakcije::Prodaja);
+
+        if ($granice = $period->utcGranice()) {
+            $upit->whereBetween('transakcije.vreme_utc', $granice);
+        }
+
+        return $upit;
     }
 
     /**

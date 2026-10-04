@@ -1,7 +1,5 @@
 @extends('layouts.knjiga')
 
-@use('App\Support\Decimal')
-
 @section('naslov', 'Uvoz i transakcije')
 
 @section('knjiga')
@@ -68,11 +66,11 @@
         <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-2">
             <div>
                 <h2 class="h5 mb-1" id="transakcije-naslov">Sve transakcije</h2>
-                <p class="text-body-secondary small mb-0">Sirovi redovi iz izvoda, najnoviji prvi. Ukupno: {{ $transakcije->total() }}.</p>
+                <p class="text-body-secondary small mb-0">Sirovi redovi iz izvoda, podrazumevano najnoviji prvi. Ukupno: {{ $ukupno }}.</p>
             </div>
-            @if ($transakcije->total() > 0)
+            @if ($ukupno > 0)
                 <form method="POST" action="{{ route('transakcije.obrisi') }}"
-                      data-potvrda="Obrisati svih {{ $transakcije->total() }} transakcija i obračun? Ovo ne može da se poništi.">
+                      data-potvrda="Obrisati svih {{ $ukupno }} transakcija i obračun? Ovo ne može da se poništi.">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-outline-danger btn-sm">Obriši sve transakcije</button>
@@ -80,46 +78,10 @@
             @endif
         </div>
 
-        @if ($transakcije->isEmpty())
+        @if ($ukupno === 0)
             <div class="prazno">Još nema uvezenih transakcija.</div>
         @else
-            <div class="tabela-omot">
-                <table class="table table-hover tabela-knjiga">
-                    <thead>
-                        <tr>
-                            <th scope="col">Datum i vreme (SRB)</th>
-                            <th scope="col">Akcija</th>
-                            <th scope="col">Simbol</th>
-                            <th scope="col" class="broj">Količina</th>
-                            <th scope="col" class="broj">Cena</th>
-                            <th scope="col" class="broj">Kurs NBS</th>
-                            <th scope="col" class="broj">Ukupno</th>
-                            <th scope="col" class="broj">Porez po odbitku</th>
-                            <th scope="col" class="broj">Naknade</th>
-                            <th scope="col">ID</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($transakcije as $t)
-                            <tr>
-                                <td class="text-nowrap">{{ $t->vremeSrb()->format('d.m.Y H:i:s') }}</td>
-                                <td class="text-nowrap">{{ $t->tip_akcije }}</td>
-                                <td class="fw-semibold">{{ $t->imovina?->simbol }}</td>
-                                <td class="broj">{{ $t->valuta_cene ? Decimal::formatKolicina($t->decimal('kolicina')) : '' }}</td>
-                                <td class="broj">{{ $t->valuta_cene ? Decimal::format($t->decimal('cena_po_akciji'), 4).' '.$t->valuta_cene : '' }}</td>
-                                <td class="broj">
-                                    @if ($t->kurs !== null){{ Decimal::format($t->decimal('kurs'), 4) }}@elseif ($t->valuta_cene)<span class="text-warning">nema</span>@endif
-                                </td>
-                                <td class="broj">{{ Decimal::format($t->decimal('ukupno')) }} {{ $t->valuta_ukupno }}</td>
-                                <td class="broj">{{ $t->valuta_poreza ? Decimal::format($t->decimal('porez_po_odbitku')).' '.$t->valuta_poreza : '' }}</td>
-                                <td class="broj">{{ $t->valuta_provizije ? Decimal::format($t->decimal('provizija')).' '.$t->valuta_provizije : '' }}</td>
-                                <td class="text-body-secondary small">{{ $t->broker_transakcija_id }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-            <div class="mt-3">{{ $transakcije->links() }}</div>
+            <x-tabela id="transakcije" :tabela="$tabela" :redovi="$transakcije" :ukupno="$ukupno" />
         @endif
     </section>
 @endsection

@@ -6,7 +6,9 @@ use App\Enums\TipTransakcije;
 use App\Models\Korisnik;
 use App\Models\Transakcija;
 use App\Support\Decimal;
+use App\Support\Tabela\Tabela;
 use BcMath\Number;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 /**
@@ -17,24 +19,44 @@ class DividendeIzvestaj
     public function __construct(private readonly DividendaKalkulator $kalkulator) {}
 
     /**
-     * @return array{redovi: Collection<int, object>, zbir: array<string, Number|int>}
+     * Zbir se uvek računa nad celim periodom; $tabela samo bira i ređa prikazane redove (SQL).
+     *
+     * @return array{redovi: Collection<int, object>, zbir: array<string, Number|int>, ukupno: int}
      */
-    public function za(Korisnik $korisnik, Period $period): array
+    public function za(Korisnik $korisnik, Period $period, ?Tabela $tabela = null): array
+    {
+        $redovi = $this->upit($korisnik, $period)
+            ->with('imovina')
+            ->orderBy('transakcije.vreme_utc')
+            ->orderBy('transakcije.id')
+            ->get()
+            ->map(fn (Transakcija $t) => $this->red($t));
+
+        return [
+            'redovi' => $tabela?->izaberi(
+                $this->upit($korisnik, $period)->leftJoin('imovina as i', 'i.id', '=', 'transakcije.imovina_id'),
+                'transakcije.id',
+                $redovi->keyBy(fn ($r) => $r->transakcija->id),
+            ) ?? $redovi,
+            'zbir' => $this->zbir($redovi),
+            'ukupno' => $redovi->count(),
+        ];
+    }
+
+    /**
+     * @return Builder<Transakcija>
+     */
+    private function upit(Korisnik $korisnik, Period $period): Builder
     {
         $upit = Transakcija::query()
-            ->with('imovina')
-            ->where('korisnik_id', $korisnik->id)
-            ->tipa(TipTransakcije::Dividenda)
-            ->orderBy('vreme_utc')
-            ->orderBy('id');
+            ->where('transakcije.korisnik_id', $korisnik->id)
+            ->tipa(TipTransakcije::Dividenda);
 
         if ($granice = $period->utcGranice()) {
-            $upit->whereBetween('vreme_utc', $granice);
+            $upit->whereBetween('transakcije.vreme_utc', $granice);
         }
 
-        $redovi = $upit->get()->map(fn (Transakcija $t) => $this->red($t));
-
-        return ['redovi' => $redovi, 'zbir' => $this->zbir($redovi)];
+        return $upit;
     }
 
     public function red(Transakcija $t): object

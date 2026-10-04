@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Porezi\UvozKursevaRequest;
 use App\Http\Requests\Porezi\UvozTrading212Request;
 use App\Models\Korisnik;
+use App\Models\Transakcija;
 use App\Services\Kursevi\NbsCsvParser;
 use App\Services\Kursevi\NbsKursService;
 use App\Services\Kursevi\PrimenaKurseva;
 use App\Services\Uvoz\Trading212UvozService;
+use App\Tabele\TransakcijeTabela;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -22,12 +24,17 @@ class UvozController extends Controller
         /** @var Korisnik $korisnik */
         $korisnik = $request->user();
 
+        $tabela = TransakcijeTabela::za($request);
+        $upit = Transakcija::query()
+            ->where('transakcije.korisnik_id', $korisnik->id)
+            ->select('transakcije.*')
+            ->with('imovina')
+            ->leftJoin('imovina as i', 'i.id', '=', 'transakcije.imovina_id');
+
         return view('porezi.uvoz', [
-            'transakcije' => $korisnik->transakcije()
-                ->with('imovina')
-                ->orderByDesc('vreme_utc')
-                ->orderByDesc('id')
-                ->paginate(50),
+            'tabela' => $tabela,
+            'transakcije' => $tabela->primeni($upit)->paginate(50)->withQueryString(),
+            'ukupno' => $korisnik->transakcije()->count(),
             'bezKursa' => $kursevi->bezKursa($korisnik)->with('imovina')->orderBy('vreme_utc')->get(),
         ]);
     }

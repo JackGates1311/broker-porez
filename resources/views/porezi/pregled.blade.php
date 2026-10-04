@@ -73,38 +73,10 @@
             <h2 class="h5 mb-1" id="portfolio-naslov">Otvorene pozicije</h2>
             <p class="text-body-secondary small">Preostale akcije po FIFO redosledu i njihova nabavna vrednost. Ne zavisi od izabranog perioda.</p>
 
-            @if ($portfolio === [])
+            @if ($brojPozicija === 0)
                 <p class="text-body-secondary">Nema otvorenih pozicija.</p>
             @else
-                <div class="tabela-omot">
-                    <table class="table table-hover tabela-knjiga">
-                        <thead>
-                            <tr>
-                                <th scope="col">Simbol</th>
-                                <th scope="col">Naziv</th>
-                                <th scope="col">ISIN</th>
-                                <th scope="col" class="broj">Količina</th>
-                                <th scope="col" class="broj">Nabavna vrednost (RSD)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($portfolio as $pozicija)
-                                <tr>
-                                    <td class="fw-semibold">{{ $pozicija->simbol }}</td>
-                                    <td>{{ $pozicija->naziv }}</td>
-                                    <td class="text-body-secondary">{{ $pozicija->isin }}</td>
-                                    <td class="broj">{{ Decimal::formatKolicina($pozicija->kolicina) }}</td>
-                                    <td class="broj">
-                                        {{ Decimal::format($pozicija->nabavna_rsd) }}
-                                        @if ($pozicija->bez_kursa)
-                                            <span class="text-warning" title="Deo kupovina nema NBS kurs">*</span>
-                                        @endif
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+                <x-tabela id="portfolio" :tabela="$tabela" :redovi="$portfolio" :ukupno="$brojPozicija" placeholder="Simbol, naziv, ISIN ili iznos…" />
             @endif
         </section>
     @endif

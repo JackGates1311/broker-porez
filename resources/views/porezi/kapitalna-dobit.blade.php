@@ -12,88 +12,69 @@
 @section('knjiga')
     <div class="row g-4">
         <div class="col-12 order-2">
-            @if ($redovi->isEmpty())
+            @if ($ukupno === 0)
                 <div class="prazno">
                     <p class="mb-2">Nema kupovina ni prodaja u periodu „{{ $period->naziv() }}”.</p>
                     <a href="{{ route('uvoz') }}">Uvezi Trading 212 izvod</a>
                 </div>
             @else
-                <div class="tabela-omot">
-                    <table class="table table-sm table-hover tabela-knjiga align-middle">
-                        <thead>
-                            <tr>
-                                <th scope="col">Tip</th>
-                                <th scope="col">Datum i vreme (SRB)</th>
-                                <th scope="col">Simbol</th>
-                                <th scope="col" class="broj">Količina</th>
-                                <th scope="col" class="broj">Cena</th>
-                                <th scope="col">Valuta</th>
-                                <th scope="col" class="broj">Kurs NBS</th>
-                                <th scope="col" class="broj">Vrednost (RSD)</th>
-                                <th scope="col" class="broj">Preostalo (FIFO)</th>
-                                <th scope="col" class="broj">Nabavna vrednost</th>
-                                <th scope="col" class="broj">Dobit / gubitak</th>
-                                <th scope="col" class="broj">Porez 15%</th>
-                                <th scope="col" class="broj">Obaveza</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($redovi as $red)
-                                @php($prodaja = $red->tip === TipTransakcije::Prodaja)
-                                <tr @class(['upozorenje-red' => $red->bez_kursa || $red->nedostaje])>
-                                    <td class="text-nowrap">
-                                        @if ($prodaja && $red->alokacije->isNotEmpty())
-                                            <button type="button" class="dugme-rasklopi" data-bs-toggle="collapse"
-                                                    data-bs-target=".alokacije-{{ $red->transakcija->id }}" aria-expanded="false"
-                                                    aria-label="Prikaži kupovine iz kojih je prodaja namirena">
-                                                <span class="strelica" aria-hidden="true">›</span>
-                                            </button>
-                                        @endif
-                                        <span @class(['tip-oznaka', 'tip-prodaja' => $prodaja, 'tip-kupovina' => ! $prodaja])>
-                                            {{ $prodaja ? 'PRODAJA' : 'KUPOVINA' }}
-                                        </span>
-                                    </td>
-                                    <td class="text-nowrap">{{ $red->vreme->format('d.m.Y H:i:s') }}</td>
-                                    <td class="fw-semibold" title="{{ $red->naziv }}">{{ $red->simbol }}</td>
-                                    <td class="broj">{{ Decimal::formatKolicina($red->kolicina) }}</td>
-                                    <td class="broj">{{ Decimal::format($red->cena, 4) }}</td>
-                                    <td>{{ $red->valuta }}</td>
-                                    <td class="broj">{{ $red->kurs ? Decimal::format($red->kurs, 4) : '' }}
-                                        @if ($red->kurs === null)<span class="text-warning">nema kursa</span>@endif
-                                    </td>
-                                    <td class="broj">{{ Decimal::format($red->vrednost_rsd) }}</td>
-                                    <td class="broj">{{ $prodaja ? '' : Decimal::formatKolicina($red->preostalo) }}</td>
-                                    @if ($prodaja)
-                                        <td class="broj">
-                                            {{ Decimal::format($red->nabavna_rsd) }}
-                                            @if ($red->nedostaje)
-                                                <div class="small text-warning-emphasis text-wrap">bez kupovine: {{ Decimal::formatKolicina($red->nedostaje) }}</div>
-                                            @endif
-                                        </td>
-                                        <td @class(['broj', 'dobit' => $red->dobit > Decimal::nula(), 'gubitak' => $red->dobit < Decimal::nula()])>{{ Decimal::format($red->dobit) }}</td>
-                                        <td class="broj">{{ Decimal::format($red->porez) }}</td>
-                                        <td class="broj fw-semibold">{{ Decimal::format($red->obaveza) }}</td>
-                                    @else
-                                        <td colspan="4"></td>
+                <x-tabela id="kapitalna-dobit" :tabela="$tabela" :redovi="$redovi" :ukupno="$ukupno" klasa="table-sm align-middle">
+                    <x-slot:telo>
+                        @foreach ($redovi as $red)
+                            @php($prodaja = $red->tip === TipTransakcije::Prodaja)
+                            <tr @class(['upozorenje-red' => $red->bez_kursa || $red->nedostaje])>
+                                <td class="text-nowrap">
+                                    @if ($prodaja && $red->alokacije->isNotEmpty())
+                                        <button type="button" class="dugme-rasklopi" data-bs-toggle="collapse"
+                                                data-bs-target=".alokacije-{{ $red->transakcija->id }}" aria-expanded="false"
+                                                aria-label="Prikaži kupovine iz kojih je prodaja namirena">
+                                            <span class="strelica" aria-hidden="true">›</span>
+                                        </button>
                                     @endif
+                                    <span @class(['tip-oznaka', 'tip-prodaja' => $prodaja, 'tip-kupovina' => ! $prodaja])>
+                                        {{ $prodaja ? 'PRODAJA' : 'KUPOVINA' }}
+                                    </span>
+                                </td>
+                                <td class="text-nowrap">{{ $red->vreme->format('d.m.Y H:i:s') }}</td>
+                                <td class="fw-semibold" title="{{ $red->naziv }}">{{ $red->simbol }}</td>
+                                <td class="broj">{{ Decimal::formatKolicina($red->kolicina) }}</td>
+                                <td class="broj">{{ Decimal::format($red->cena, 4) }}</td>
+                                <td>{{ $red->valuta }}</td>
+                                <td class="broj">{{ $red->kurs ? Decimal::format($red->kurs, 4) : '' }}
+                                    @if ($red->kurs === null)<span class="text-warning">nema kursa</span>@endif
+                                </td>
+                                <td class="broj">{{ Decimal::format($red->vrednost_rsd) }}</td>
+                                <td class="broj">{{ $prodaja ? '' : Decimal::formatKolicina($red->preostalo) }}</td>
+                                @if ($prodaja)
+                                    <td class="broj">
+                                        {{ Decimal::format($red->nabavna_rsd) }}
+                                        @if ($red->nedostaje)
+                                            <div class="small text-warning-emphasis text-wrap">bez kupovine: {{ Decimal::formatKolicina($red->nedostaje) }}</div>
+                                        @endif
+                                    </td>
+                                    <td @class(['broj', 'dobit' => $red->dobit > Decimal::nula(), 'gubitak' => $red->dobit < Decimal::nula()])>{{ Decimal::format($red->dobit) }}</td>
+                                    <td class="broj">{{ Decimal::format($red->porez) }}</td>
+                                    <td class="broj fw-semibold">{{ Decimal::format($red->obaveza) }}</td>
+                                @else
+                                    <td colspan="4"></td>
+                                @endif
+                            </tr>
+                            @foreach ($red->alokacije as $alokacija)
+                                <tr class="collapse red-alokacija alokacije-{{ $red->transakcija->id }}">
+                                    <td></td>
+                                    <td class="text-nowrap" colspan="2">iz kupovine {{ $alokacija->vreme->format('d.m.Y H:i') }}</td>
+                                    <td class="broj">{{ Decimal::formatKolicina($alokacija->kolicina) }}</td>
+                                    <td class="broj">{{ Decimal::format($alokacija->cena, 4) }}</td>
+                                    <td>{{ $alokacija->valuta }}</td>
+                                    <td class="broj">{{ $alokacija->kurs ? Decimal::format($alokacija->kurs, 4) : 'nema kursa' }}</td>
+                                    <td colspan="2" class="text-body-secondary">{{ $alokacija->broker_id }}</td>
+                                    <td class="broj">{{ Decimal::format($alokacija->nabavna_rsd) }}</td>
+                                    <td colspan="3"></td>
                                 </tr>
-                                @foreach ($red->alokacije as $alokacija)
-                                    <tr class="collapse red-alokacija alokacije-{{ $red->transakcija->id }}">
-                                        <td></td>
-                                        <td class="text-nowrap" colspan="2">iz kupovine {{ $alokacija->vreme->format('d.m.Y H:i') }}</td>
-                                        <td class="broj">{{ Decimal::formatKolicina($alokacija->kolicina) }}</td>
-                                        <td class="broj">{{ Decimal::format($alokacija->cena, 4) }}</td>
-                                        <td>{{ $alokacija->valuta }}</td>
-                                        <td class="broj">{{ $alokacija->kurs ? Decimal::format($alokacija->kurs, 4) : 'nema kursa' }}</td>
-                                        <td colspan="2" class="text-body-secondary">{{ $alokacija->broker_id }}</td>
-                                        <td class="broj">{{ Decimal::format($alokacija->nabavna_rsd) }}</td>
-                                        <td colspan="3"></td>
-                                    </tr>
-                                @endforeach
                             @endforeach
-                        </tbody>
-                    </table>
-                </div>
+                        @endforeach
+                    </x-slot:telo>
+                </x-tabela>
                 <p class="text-body-secondary small mt-2">
                     Nabavna vrednost prodaje se računa po FIFO redosledu: prvo se troše najstarije kupovine iste hartije, po NBS kursu na dan kupovine.
                     Strelica pored prodaje prikazuje kupovine iz kojih je namirena.

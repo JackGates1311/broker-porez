@@ -7,6 +7,7 @@ use App\Models\Korisnik;
 use App\Services\Porezi\DostupniPeriodi;
 use App\Services\Porezi\KapitalnaDobitIzvestaj;
 use App\Services\Porezi\Period;
+use App\Tabele\KapitalnaDobitTabela;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -24,8 +25,11 @@ class KapitalnaDobitController extends Controller
             ? $period
             : Period::za(now('Europe/Belgrade')->subMonths(6)->year, now('Europe/Belgrade')->subMonths(6)->month <= 6 ? 1 : 2);
 
+        $tabela = KapitalnaDobitTabela::za($request);
+
         return view('porezi.kapitalna-dobit', [
-            ...$izvestaj->za($korisnik, $period),
+            ...$izvestaj->za($korisnik, $period, $tabela),
+            'tabela' => $tabela,
             'period' => $period,
             'godine' => $godine,
             'prijava' => $prijava,
