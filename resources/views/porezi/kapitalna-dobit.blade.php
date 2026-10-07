@@ -140,20 +140,27 @@
                         </div>
                     </div>
 
-                    <details class="small mb-3">
-                        <summary class="text-body-secondary">Šifre na obrascu</summary>
-                        <p class="text-body-secondary mt-2 mb-2">Podrazumevane vrednosti nisu proverene u šifarniku Poreske uprave. Proverite ih pre podnošenja.</p>
+                    <fieldset class="small mb-3">
+                        <legend class="fs-6 small fw-semibold mb-2">Šifre na obrascu</legend>
                         <div class="row g-2">
-                            <div class="col-6">
+                            <div class="col-12">
                                 <label for="vrsta_prijave" class="form-label mb-1">1.1 Vrsta prijave</label>
-                                <input id="vrsta_prijave" name="vrsta_prijave" class="form-control form-control-sm" inputmode="numeric" value="{{ config('porezi.ppdg3r.vrsta_prijave') }}">
+                                <select id="vrsta_prijave" name="vrsta_prijave" class="form-select form-select-sm">
+                                    @foreach (config('porezi.ppdg3r.vrste_prijave') as $oznaka => $naziv)
+                                        <option value="{{ $oznaka }}" @selected((string) $oznaka === config('porezi.ppdg3r.vrsta_prijave'))>{{ $oznaka }} – {{ $naziv }}</option>
+                                    @endforeach
+                                </select>
                             </div>
-                            <div class="col-6">
-                                <label for="osnov_za_prijavu" class="form-label mb-1">1.1a Osnov</label>
-                                <input id="osnov_za_prijavu" name="osnov_za_prijavu" class="form-control form-control-sm" inputmode="numeric" value="{{ config('porezi.ppdg3r.osnov_za_prijavu') }}">
+                            <div class="col-12">
+                                <label for="osnov_za_prijavu" class="form-label mb-1">1.1a Osnov za prijavu</label>
+                                <select id="osnov_za_prijavu" name="osnov_za_prijavu" class="form-select form-select-sm">
+                                    @foreach (config('porezi.ppdg3r.osnovi_za_prijavu') as $oznaka => $naziv)
+                                        <option value="{{ $oznaka }}" @selected((string) $oznaka === config('porezi.ppdg3r.osnov_za_prijavu'))>{{ $oznaka }} – {{ $naziv }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
-                    </details>
+                    </fieldset>
 
                     <button type="submit" class="btn btn-primary btn-sm w-100">Preuzmi PPDG-3R (PDF)</button>
                 </form>

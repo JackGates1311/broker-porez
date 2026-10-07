@@ -67,24 +67,35 @@
                     <p class="small text-warning-emphasis">Deo 2 će ostati prazan dok ne popunite <a href="{{ route('poreski-obaveznik') }}">podatke o poreskom obavezniku</a>.</p>
                 @endunless
 
-                <details class="small">
-                    <summary class="text-body-secondary">Šifre na obrascu</summary>
-                    <p class="text-body-secondary mt-2 mb-2">Podrazumevane vrednosti nisu proverene u šifarniku Poreske uprave. Proverite ih pre podnošenja.</p>
+                <fieldset class="small">
+                    <legend class="fs-6 small fw-semibold mb-2">Šifre na obrascu</legend>
                     <div class="mb-2">
                         <label for="sifra_vrste_prihoda" class="form-label mb-1">4.2 Šifra vrste prihoda</label>
-                        <input id="sifra_vrste_prihoda" form="ppopo-forma" name="sifra_vrste_prihoda" class="form-control form-control-sm" inputmode="numeric" maxlength="9" value="{{ config('porezi.ppopo.sifra_vrste_prihoda') }}">
+                        <input id="sifra_vrste_prihoda" form="ppopo-forma" name="sifra_vrste_prihoda" list="sifre-vrste-prihoda" class="form-control form-control-sm" inputmode="numeric" maxlength="9" aria-describedby="sifra-vrste-prihoda-napomena" value="{{ config('porezi.ppopo.sifra_vrste_prihoda') }}">
+                        <datalist id="sifre-vrste-prihoda">
+                            @foreach (config('porezi.ppopo.sifre_vrste_prihoda') as $sifra => $naziv)
+                                <option value="{{ $sifra }}">{{ $naziv }}</option>
+                            @endforeach
+                        </datalist>
+                        <div id="sifra-vrste-prihoda-napomena" class="form-text">Nije potvrđena u šifarniku Poreske uprave. Proverite je pre podnošenja.</div>
                     </div>
-                    <div class="row g-2">
-                        <div class="col-6">
-                            <label for="vrsta_prijave" class="form-label mb-1">1.1 Vrsta prijave</label>
-                            <input id="vrsta_prijave" form="ppopo-forma" name="vrsta_prijave" class="form-control form-control-sm" inputmode="numeric" value="{{ config('porezi.ppopo.vrsta_prijave') }}">
-                        </div>
-                        <div class="col-6">
-                            <label for="nacin_ostvarivanja" class="form-label mb-1">3.1 Način ostvarivanja</label>
-                            <input id="nacin_ostvarivanja" form="ppopo-forma" name="nacin_ostvarivanja" class="form-control form-control-sm" inputmode="numeric" value="{{ config('porezi.ppopo.nacin_ostvarivanja') }}">
-                        </div>
+                    <div class="mb-2">
+                        <label for="vrsta_prijave" class="form-label mb-1">1.1 Vrsta prijave</label>
+                        <select id="vrsta_prijave" form="ppopo-forma" name="vrsta_prijave" class="form-select form-select-sm">
+                            @foreach (config('porezi.ppopo.vrste_prijave') as $oznaka => $naziv)
+                                <option value="{{ $oznaka }}" @selected((string) $oznaka === config('porezi.ppopo.vrsta_prijave'))>{{ $oznaka }} – {{ $naziv }}</option>
+                            @endforeach
+                        </select>
                     </div>
-                </details>
+                    <div>
+                        <label for="nacin_ostvarivanja" class="form-label mb-1">3.1 Način ostvarivanja prihoda</label>
+                        <select id="nacin_ostvarivanja" form="ppopo-forma" name="nacin_ostvarivanja" class="form-select form-select-sm">
+                            @foreach (config('porezi.ppopo.nacini_ostvarivanja') as $oznaka => $naziv)
+                                <option value="{{ $oznaka }}" @selected((string) $oznaka === config('porezi.ppopo.nacin_ostvarivanja'))>{{ $oznaka }} – {{ $naziv }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </fieldset>
             </section></div>
             </div>
         </aside>

@@ -4,6 +4,7 @@ namespace App\Http\Requests\Porezi;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class Ppdg3rRequest extends FormRequest
 {
@@ -20,8 +21,8 @@ class Ppdg3rRequest extends FormRequest
         return [
             'godina' => ['required', 'integer', 'between:2000,2100'],
             'polugodiste' => ['required', 'in:1,2'],
-            'vrsta_prijave' => ['nullable', 'digits_between:1,2'],
-            'osnov_za_prijavu' => ['nullable', 'digits_between:1,2'],
+            'vrsta_prijave' => ['nullable', Rule::in(array_keys(config('porezi.ppdg3r.vrste_prijave')))],
+            'osnov_za_prijavu' => ['nullable', Rule::in(array_keys(config('porezi.ppdg3r.osnovi_za_prijavu')))],
         ];
     }
 }
