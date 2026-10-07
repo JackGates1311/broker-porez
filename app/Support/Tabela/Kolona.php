@@ -188,11 +188,11 @@ final class Kolona
     }
 
     /**
-     * Klasa zaglavlja: samo poravnanje brojeva, bez stila ćelija.
+     * Klasa zaglavlja: samo poravnanje (brojevi, centrirane kolone), bez stila ćelija.
      */
     public function cssZaglavlja(): string
     {
-        return in_array('broj', explode(' ', $this->klasa), true) ? 'broj' : '';
+        return implode(' ', array_intersect(explode(' ', $this->klasa), ['broj', 'text-center']));
     }
 
     public function sqlIzraz(): string

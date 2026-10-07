@@ -4,10 +4,6 @@
 
 @section('naslov', 'Dividende')
 
-@section('alati')
-    @include('porezi._period', ['samoGodine' => true])
-@endsection
-
 @section('knjiga')
     <div class="row g-4">
         <div class="col-12 order-2">
@@ -20,7 +16,7 @@
                 {{-- Šifre za PP OPO; dugmad u tabeli šalju ovu formu na adresu konkretne dividende. --}}
                 <form id="ppopo-forma" method="GET" action="#"></form>
 
-                <x-tabela id="dividende" :tabela="$tabela" :redovi="$redovi" :ukupno="$ukupno" klasa="table-sm align-middle">
+                <x-tabela id="dividende" :tabela="$tabela" :redovi="$redovi" :ukupno="$ukupno" klasa="table-sm align-middle tabela-gusta">
                     <x-slot:podnozje>
                         <tr>
                             <td colspan="10">Ukupno za period ({{ $zbir['broj'] }}), bez obzira na pretragu</td>
@@ -37,7 +33,13 @@
             @endif
         </div>
 
-        <aside class="col-12 order-1">
+        <aside class="col-12 order-1" aria-labelledby="porez-naslov">
+            {{-- Period je ovde, kao na Pregledu, a ne u zaglavlju stranice. --}}
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                <h2 class="h5 mb-0" id="porez-naslov">Porez za period</h2>
+                @include('porezi._period', ['samoGodine' => true])
+            </div>
+
             <div class="row g-4">
             <div class="col-lg-4"><section class="polje-obrasca h-100" aria-labelledby="div-naslov">
                 <p class="polje-obrasca-oznaka" id="div-naslov">Porez na dividende za uplatu ({{ mb_strtolower($period->naziv()) }})</p>
@@ -61,7 +63,7 @@
 
             <div class="col-lg-4"><section class="border bg-white p-3 h-100" aria-labelledby="ppopo-naslov">
                 <h2 class="h6 mb-1" id="ppopo-naslov">Obrazac PP OPO</h2>
-                <p class="small text-body-secondary">Podnosi se za svaku isplatu, u roku od 30 dana. Preuzmite ga dugmetom „PP OPO” u redu dividende.</p>
+                <p class="small text-body-secondary">Podnosi se za svaku isplatu, u roku od 30 dana. Preuzmite ga ikonicom u koloni „PP OPO” u redu dividende.</p>
 
                 @unless ($obaveznikPopunjen)
                     <p class="small text-warning-emphasis">Deo 2 će ostati prazan dok ne popunite <a href="{{ route('poreski-obaveznik') }}">podatke o poreskom obavezniku</a>.</p>

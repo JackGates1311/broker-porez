@@ -11,7 +11,7 @@
                 Unesite email adresu naloga i poslaćemo vam link za postavljanje nove lozinke.
             </p>
 
-            <form method="POST" action="{{ route('lozinka.zaboravljena') }}" class="needs-validation" novalidate>
+            <form method="POST" action="{{ route('lozinka.zaboravljena') }}" class="needs-validation" novalidate data-samo-greske>
                 @csrf
 
                 <div class="mb-4">

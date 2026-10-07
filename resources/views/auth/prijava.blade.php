@@ -7,7 +7,7 @@
         <div class="card-body p-4">
             <h1 class="h4 mb-4 text-center">Prijava</h1>
 
-            <form method="POST" action="{{ route('prijava') }}" class="needs-validation" novalidate>
+            <form method="POST" action="{{ route('prijava') }}" class="needs-validation" novalidate data-samo-greske>
                 @csrf
 
                 <div class="mb-3">
@@ -37,6 +37,10 @@
                     <input type="checkbox" id="zapamti" name="zapamti" value="1" class="form-check-input" @checked(old('zapamti'))>
                     <label for="zapamti" class="form-check-label">Zapamti me</label>
                 </div>
+
+                @error('prijava')
+                    <div class="alert alert-danger py-2 small" role="alert">{{ $message }}</div>
+                @enderror
 
                 <button type="submit" class="btn btn-primary w-100">Prijavi se</button>
             </form>

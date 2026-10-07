@@ -5,10 +5,6 @@
 
 @section('naslov', 'Kapitalna dobit')
 
-@section('alati')
-    @include('porezi._period')
-@endsection
-
 @section('knjiga')
     <div class="row g-4">
         <div class="col-12 order-2">
@@ -82,12 +78,19 @@
             @endif
         </div>
 
-        <aside class="col-12 order-1">
+        <aside class="col-12 order-1" aria-labelledby="porez-naslov">
+            {{-- Period je ovde, kao na Pregledu, a ne u zaglavlju stranice. --}}
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                <h2 class="h5 mb-0" id="porez-naslov">Porez za period</h2>
+                @include('porezi._period')
+            </div>
+
             <div class="row g-4">
             <div class="col-lg-4"><section class="polje-obrasca h-100" aria-labelledby="obaveza-naslov">
                 <p class="polje-obrasca-oznaka" id="obaveza-naslov">Trenutni dug prema poreskoj ({{ mb_strtolower($period->naziv()) }})</p>
                 <x-kucice :iznos="$zbir['trenutni_dug']" />
-                <p class="text-body-secondary small mt-3 mb-0">Gubici se prebijaju sa dobicima iz istog perioda. Broj prodaja: {{ $zbir['broj_prodaja'] }}.</p>
+                <p class="text-body-secondary small mt-3 mb-0">Gubici se prebijaju sa dobicima iz istog perioda.</p>
+                <p class="text-body-secondary small mt-3 mb-0">Broj realizovanih prodaja: {{ $zbir['broj_prodaja'] }}</p>
             </section></div>
 
             <div class="col-lg-4"><dl class="mb-0">

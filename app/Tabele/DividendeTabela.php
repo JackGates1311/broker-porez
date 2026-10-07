@@ -74,8 +74,8 @@ final class DividendeTabela
                 ->izraz("CASE WHEN transakcije.kurs IS NULL THEN NULL WHEN {$razlika} > 0 THEN {$razlika} ELSE 0 END")
                 ->klasa('broj fw-semibold')
                 ->prikaz(fn ($r) => Decimal::format($r->obracun->zaUplatu)),
-            Kolona::akcija('obrazac', 'Obrazac')
-                ->skrivenNaslov()
+            Kolona::akcija('obrazac', 'PP OPO')
+                ->klasa('text-center')
                 ->prikaz(fn ($r) => new HtmlString(view('porezi._ppopo-dugme', ['red' => $r])->render())),
         ])
             ->podrazumevano('vreme')

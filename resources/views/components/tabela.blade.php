@@ -55,7 +55,7 @@
 
             {{-- Reset filtera kao kompaktna ikonica sa tooltipom --}}
             @if ($stanje->jeIzmenjeno())
-                <a href="{{ $stanje->urlReseta() }}" class="btn btn-sm btn-outline-secondary border-0 p-1 lh-1 text-danger" title="Poništi pretragu i sortiranje">
+                <a href="{{ $stanje->urlReseta() }}" class="tabela-reset btn btn-sm border-0 p-1 lh-1" title="Poništi pretragu i sortiranje">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
                         <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293 5.354 4.646z"/>
                     </svg>
@@ -125,13 +125,13 @@
                         <th scope="col" @class([$kolona->cssZaglavlja(), 'sortirano' => $prioritet !== null])
                             @if ($prioritet && $prioritet[0] === 1) aria-sort="{{ $prioritet[1] === 'asc' ? 'ascending' : 'descending' }}" @endif>
                             @if ($kolona->jeSortabilna())
-                                <a href="{{ $tabela->urlSortiranja($kolona->kljuc) }}" data-fokus="sort-{{ $kolona->kljuc }}" class="sort-link text-dark text-decoration-none d-flex align-items-center justify-content-between gap-1"
+                                <a href="{{ $tabela->urlSortiranja($kolona->kljuc) }}" data-fokus="sort-{{ $kolona->kljuc }}" class="sort-link text-dark text-decoration-none d-flex align-items-center gap-1"
                                    title="{{ $stanje->viseKolona ? 'Dodaj u sortiranje po više kolona' : 'Sortiraj po ovoj koloni' }}">
-                                    <span @class(['visually-hidden' => $kolona->imaSkrivenNaslov()]) class="fw-semibold">{{ $kolona->naslov }}</span>
+                                    <span @class(['fw-semibold', 'visually-hidden' => $kolona->imaSkrivenNaslov()])>{{ $kolona->naslov }}</span>
                                     <span class="sort-strelica text-muted" aria-hidden="true" style="font-size: 0.8rem;">@if ($prioritet){{ $prioritet[1] === 'asc' ? '▲' : '▼' }}@if (count($tabela->efektivniSort()) > 1)<sup class="text-primary fw-bold">{{ $prioritet[0] }}</sup>@endif @else ↕ @endif</span>
                                 </a>
                             @else
-                                <span @class(['visually-hidden' => $kolona->imaSkrivenNaslov()]) class="fw-semibold">{{ $kolona->naslov }}</span>
+                                <span @class(['fw-semibold', 'visually-hidden' => $kolona->imaSkrivenNaslov()])>{{ $kolona->naslov }}</span>
                             @endif
                         </th>
                     @endforeach

@@ -24,6 +24,7 @@ export function initPrikazLozinke(): void {
 /**
  * Bootstrap validacija na klijentu za forme sa klasom .needs-validation.
  * Polje sa data-poklapa-se-sa="<id>" mora imati istu vrednost kao navedeno polje.
+ * Forma sa data-samo-greske označava samo neispravna polja (bez zelene potvrde ispravnih).
  */
 export function initValidacijaFormi(): void {
     document.querySelectorAll<HTMLFormElement>('form.needs-validation').forEach((forma) => {
@@ -55,7 +56,37 @@ export function initValidacijaFormi(): void {
                 dogadjaj.stopPropagation();
             }
 
+            if (forma.hasAttribute('data-samo-greske')) {
+                forma.querySelectorAll<HTMLInputElement>('input:not([type="hidden"])').forEach((polje) => {
+                    polje.classList.toggle('is-invalid', !polje.validity.valid);
+                });
+
+                return;
+            }
+
             forma.classList.add('was-validated');
+        });
+    });
+}
+
+/**
+ * Dugme sa data-predlog unutar [data-predlozi-za="<id polja>"] upisuje predlog u to polje.
+ */
+export function initPredloge(): void {
+    document.querySelectorAll<HTMLElement>('[data-predlozi-za]').forEach((predlozi) => {
+        const polje = document.getElementById(predlozi.dataset.predloziZa ?? '');
+
+        if (!(polje instanceof HTMLInputElement)) {
+            return;
+        }
+
+        predlozi.querySelectorAll<HTMLButtonElement>('[data-predlog]').forEach((dugme) => {
+            dugme.addEventListener('click', () => {
+                polje.value = dugme.dataset.predlog ?? '';
+                polje.classList.remove('is-invalid');
+                predlozi.hidden = true;
+                polje.focus();
+            });
         });
     });
 }

@@ -21,15 +21,20 @@
                 </button>
 
                 <div class="collapse navbar-collapse" id="glavnaNavigacija">
-                    <ul class="navbar-nav ms-auto align-items-md-center gap-md-2">
+                    <ul class="navbar-nav ms-auto align-items-md-center gap-md-3">
                         @auth
                             <li class="nav-item">
-                                <span class="navbar-text">{{ auth()->user()->korisnicko_ime }}</span>
+                                <span class="navbar-text">Dobrodošli <strong>{{ auth()->user()->korisnicko_ime }}</strong></span>
                             </li>
                             <li class="nav-item">
                                 <form method="POST" action="{{ route('odjava') }}">
                                     @csrf
-                                    <button type="submit" class="btn btn-outline-secondary btn-sm">Odjava</button>
+                                    <button type="submit" class="dugme-odjava" title="Odjava" aria-label="Odjava">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-box-arrow-right" viewBox="0 0 16 16" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0z"/>
+                                            <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708z"/>
+                                        </svg>
+                                    </button>
                                 </form>
                             </li>
                         @else

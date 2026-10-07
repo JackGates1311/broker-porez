@@ -47,8 +47,9 @@ class PrijavaRequest extends FormRequest
         if (! Auth::attempt($kredencijali, $this->boolean('zapamti'))) {
             RateLimiter::hit($this->kljucOgranicenja());
 
+            // Ključ 'prijava', a ne 'email': ne zna se koje polje je pogrešno, pa se greška prikazuje ispod forme.
             throw ValidationException::withMessages([
-                'email' => 'Pogrešan email ili lozinka.',
+                'prijava' => 'Pogrešan email ili lozinka.',
             ]);
         }
 
@@ -69,7 +70,7 @@ class PrijavaRequest extends FormRequest
         $sekunde = RateLimiter::availableIn($this->kljucOgranicenja());
 
         throw ValidationException::withMessages([
-            'email' => "Previše pokušaja prijave. Pokušajte ponovo za {$sekunde} s.",
+            'prijava' => "Previše pokušaja prijave. Pokušajte ponovo za {$sekunde} s.",
         ]);
     }
 

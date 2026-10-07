@@ -51,6 +51,31 @@
     background: #fff;
 }
 
+/* Okruglo dugme za odjavu u navigaciji (ikonica izlaza); crveni se na hover. */
+.dugme-odjava {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border: 0;
+    border-radius: 50%;
+    padding: 0;
+    background: var(--pecat-svetao);
+    color: var(--pecat);
+    cursor: pointer;
+}
+
+.dugme-odjava:hover {
+    background: rgba(var(--bs-danger-rgb), 0.1);
+    color: var(--gubitak);
+}
+
+.dugme-odjava:focus-visible {
+    outline: 2px solid var(--pecat);
+    outline-offset: 2px;
+}
+
 .auth-kartica {
     max-width: 440px;
 }
@@ -202,15 +227,25 @@
     padding: 0.45rem 0.5rem;
 }
 
+/* Tanka vertikalna linija između kolona, u zaglavlju i u telu tabele. */
+.tabela-knjiga > :not(caption) > * > * + * {
+    border-left: 1px solid var(--linija);
+}
+
+/* Široke tabele (dividende): uži bočni padding, da linije između kolona ne izazovu skrol. */
+.tabela-knjiga.tabela-gusta > :not(caption) > * > * {
+    padding-left: 0.4rem;
+    padding-right: 0.4rem;
+}
 .tabela-knjiga thead th {
     position: sticky;
     top: 0;
     z-index: 1;
-    background: #fff;
+    background: #f3f4f6;
     font-weight: 600;
     font-size: 0.8125rem;
     color: var(--tiho);
-    vertical-align: bottom;
+    vertical-align: middle;
     border-bottom: 1.5px solid var(--mastilo);
     white-space: normal;
 }
@@ -271,6 +306,27 @@
     color: var(--pecat);
 }
 
+/* Preuzimanje PDF obrasca iz reda tabele (PP OPO): plava ikonica, siva kad je onemogućena. */
+.preuzmi-pdf {
+    --bs-btn-color: var(--pecat);
+    --bs-btn-hover-color: var(--pecat);
+    --bs-btn-hover-bg: var(--pecat-svetao);
+    --bs-btn-active-color: var(--pecat);
+    --bs-btn-active-bg: var(--pecat-svetao);
+    --bs-btn-disabled-color: var(--tiho);
+    --bs-btn-focus-shadow-rgb: var(--bs-primary-rgb);
+}
+
+/* Reset (×) u kontrolnoj traci: crven, bez sive pozadine Bootstrap dugmeta. */
+.tabela-reset {
+    --bs-btn-color: var(--gubitak);
+    --bs-btn-hover-color: var(--gubitak);
+    --bs-btn-hover-bg: rgba(var(--bs-danger-rgb), 0.1);
+    --bs-btn-active-color: var(--gubitak);
+    --bs-btn-active-bg: rgba(var(--bs-danger-rgb), 0.15);
+    --bs-btn-focus-shadow-rgb: var(--bs-danger-rgb);
+}
+
 .tabela-knjiga thead th .sort-link {
     color: inherit;
     text-decoration: none;
@@ -279,8 +335,19 @@
     gap: 0.25rem;
 }
 
+/* Strelica je uvek krajnje desno: kod tekstualnih kolona naslov ostaje levo, kod brojčanih uz nju. */
+.tabela-knjiga thead th .sort-strelica {
+    flex-shrink: 0;
+    margin-left: auto;
+    white-space: nowrap;
+}
+
 .tabela-knjiga thead th.broj .sort-link {
-    flex-direction: row-reverse;
+    justify-content: flex-end;
+}
+
+.tabela-knjiga thead th.broj .sort-strelica {
+    margin-left: 0;
 }
 
 .tabela-knjiga thead th .sort-link:hover,

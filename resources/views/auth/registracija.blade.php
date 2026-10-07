@@ -18,6 +18,14 @@
                     <div class="invalid-feedback">
                         @error('korisnicko_ime') {{ $message }} @else Dozvoljena su slova, brojevi, crtice i donje crte. @enderror
                     </div>
+                    @if (session('predlozi_korisnickog_imena'))
+                        <div class="form-text d-flex flex-wrap align-items-center gap-1" data-predlozi-za="korisnicko_ime">
+                            <span>Slobodna imena:</span>
+                            @foreach (session('predlozi_korisnickog_imena') as $predlog)
+                                <button type="button" class="btn btn-sm btn-outline-primary py-0" data-predlog="{{ $predlog }}">{{ $predlog }}</button>
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
 
                 <div class="mb-3">

@@ -1,6 +1,6 @@
 {{-- Izbor obračunskog perioda; menja se odmah (resources/js/dashboard.ts). --}}
 <form method="GET" class="d-flex align-items-center gap-2" data-auto-submit>
-    <label for="period" class="text-body-secondary small text-nowrap">Period</label>
+    <label for="period" class="text-body-secondary small text-nowrap">Period:</label>
     <select id="period" name="period" class="form-select form-select-sm" style="min-width: 13rem">
         <option value="sve" @selected($period->kod === 'sve')>Cela istorija</option>
         @foreach ($godine as $godina)
