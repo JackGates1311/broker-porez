@@ -9,7 +9,7 @@ use App\Http\Controllers\Porezi\DashboardController;
 use App\Http\Controllers\Porezi\DividendeController;
 use App\Http\Controllers\Porezi\IzvozController;
 use App\Http\Controllers\Porezi\KapitalnaDobitController;
-use App\Http\Controllers\Porezi\PoreskiProfilController;
+use App\Http\Controllers\Porezi\PoreskiObaveznikController;
 use App\Http\Controllers\Porezi\UvozController;
 use Illuminate\Support\Facades\Route;
 
@@ -38,6 +38,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/odjava', [PrijavaController::class, 'destroy'])->name('odjava');
 
     Route::middleware('verifikovan')->group(function () {
+        Route::get('/poreski-obaveznik', [PoreskiObaveznikController::class, 'edit'])->name('poreski-obaveznik');
+        Route::put('/poreski-obaveznik', [PoreskiObaveznikController::class, 'update']);
+    });
+
+    Route::middleware(['verifikovan', 'obaveznik'])->group(function () {
         Route::get('/pocetna', DashboardController::class)->name('pocetna');
         Route::get('/kapitalna-dobit', KapitalnaDobitController::class)->name('kapitalna-dobit');
         Route::get('/dividende', DividendeController::class)->name('dividende');
@@ -50,8 +55,5 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/izvoz/ppdg-3r', [IzvozController::class, 'ppdg3r'])->name('izvoz.ppdg-3r');
         Route::get('/izvoz/pp-opo/{transakcija}', [IzvozController::class, 'ppOpo'])->whereNumber('transakcija')->name('izvoz.pp-opo');
-
-        Route::get('/profil', [PoreskiProfilController::class, 'edit'])->name('profil');
-        Route::put('/profil', [PoreskiProfilController::class, 'update']);
     });
 });

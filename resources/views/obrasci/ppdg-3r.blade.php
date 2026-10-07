@@ -36,7 +36,7 @@
         </tr>
     </table>
 
-    @include('obrasci._deo2', ['profil' => $profil, 'obrazac' => 'ppdg'])
+    @include('obrasci._deo2', ['obaveznik' => $obaveznik, 'obrazac' => 'ppdg'])
 
     <div class="deo">Део 4. Подаци за утврђивање пореза код преноса хартија од вредности/инвестиционих јединица ({{ $period->od->format('d.m.Y') }}–{{ $period->do->format('d.m.Y') }})</div>
     <table class="polja">

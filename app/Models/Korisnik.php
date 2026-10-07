@@ -72,11 +72,11 @@ class Korisnik extends Authenticatable
     }
 
     /**
-     * @return HasOne<PoreskiProfil, $this>
+     * @return HasOne<PoreskiObaveznik, $this>
      */
-    public function poreskiProfil(): HasOne
+    public function poreskiObaveznik(): HasOne
     {
-        return $this->hasOne(PoreskiProfil::class, 'korisnik_id');
+        return $this->hasOne(PoreskiObaveznik::class, 'korisnik_id');
     }
 
     public function jeVerifikovan(): bool

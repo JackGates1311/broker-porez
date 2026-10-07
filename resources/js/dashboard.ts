@@ -45,6 +45,47 @@ export function initListeFajlova(): void {
 }
 
 /**
+ * Na uskom ekranu se tabovi knjige skroluju vodoravno; aktivni tab se odmah pomera u vidno polje.
+ */
+export function initTabove(): void {
+    document.querySelectorAll<HTMLElement>('.knjiga-tabovi').forEach((tabovi) => {
+        const aktivan = tabovi.querySelector<HTMLElement>('.nav-link.active');
+
+        if (aktivan !== null && aktivan.offsetLeft + aktivan.offsetWidth > tabovi.clientWidth) {
+            tabovi.scrollLeft = aktivan.offsetLeft - (tabovi.clientWidth - aktivan.offsetWidth) / 2;
+        }
+    });
+}
+
+/**
+ * Polja u data-prikazi-za-tip="3,4" vide se samo za izabrane tipove obaveznika (select[data-tip-obaveznika]).
+ * Skrivena polja su isključena, pa se ne šalju i ne proveravaju.
+ */
+export function initTipObaveznika(): void {
+    document.querySelectorAll<HTMLSelectElement>('select[data-tip-obaveznika]').forEach((izbor) => {
+        const forma = izbor.form;
+
+        if (forma === null) {
+            return;
+        }
+
+        const osvezi = (): void => {
+            forma.querySelectorAll<HTMLElement>('[data-prikazi-za-tip]').forEach((blok) => {
+                const vidljivo = (blok.dataset.prikaziZaTip ?? '').split(',').includes(izbor.value);
+
+                blok.classList.toggle('d-none', !vidljivo);
+                blok.querySelectorAll<HTMLInputElement>('input, select, textarea').forEach((polje) => {
+                    polje.disabled = !vidljivo;
+                });
+            });
+        };
+
+        izbor.addEventListener('change', osvezi);
+        osvezi();
+    });
+}
+
+/**
  * Tabela <x-tabela> (data-tabela) se menja bez ponovnog učitavanja strane:
  *
  * - pretraga dok se kuca (forma sa data-pretraga-uzivo="<min. znakova>"): šalje se kad polje

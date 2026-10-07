@@ -40,7 +40,7 @@
         </tr>
     </table>
 
-    @include('obrasci._deo2', ['profil' => $profil, 'obrazac' => 'ppopo'])
+    @include('obrasci._deo2', ['obaveznik' => $obaveznik, 'obrazac' => 'ppopo'])
 
     <div class="deo">3. Подаци о начину остваривања прихода</div>
     <table class="polja" style="width: 60%">

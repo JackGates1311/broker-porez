@@ -63,8 +63,8 @@
                 <h2 class="h6 mb-1" id="ppopo-naslov">Obrazac PP OPO</h2>
                 <p class="small text-body-secondary">Podnosi se za svaku isplatu, u roku od 30 dana. Preuzmite ga dugmetom „PP OPO” u redu dividende.</p>
 
-                @unless ($profilPopunjen)
-                    <p class="small text-warning-emphasis">Deo 2 će ostati prazan dok ne popunite <a href="{{ route('profil') }}">poreski profil</a>.</p>
+                @unless ($obaveznikPopunjen)
+                    <p class="small text-warning-emphasis">Deo 2 će ostati prazan dok ne popunite <a href="{{ route('poreski-obaveznik') }}">podatke o poreskom obavezniku</a>.</p>
                 @endunless
 
                 <details class="small">

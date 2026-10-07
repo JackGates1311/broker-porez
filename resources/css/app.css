@@ -14,7 +14,7 @@
     --linija: #d5dae2;
     --tiho: #5b6475;
 
-    --bs-body-font-family: 'Instrument Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --bs-body-font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
     --bs-body-bg: var(--papir);
     --bs-body-color: var(--mastilo);
     --bs-secondary-color: var(--tiho);
@@ -74,8 +74,18 @@
 }
 
 .knjiga-tabovi {
-    border-bottom: 2px solid var(--mastilo);
+    /* Linija je senka, a ne border, da bi tabovi mogli da se skroluju (uski ekrani) bez sečenja. */
+    position: relative;
+    box-shadow: inset 0 -2px 0 var(--mastilo);
     gap: 0.25rem;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+}
+
+.knjiga-tabovi::-webkit-scrollbar {
+    display: none;
 }
 
 .knjiga-tabovi .nav-link {
@@ -83,9 +93,9 @@
     border: 0;
     border-bottom: 3px solid transparent;
     border-radius: 0;
-    margin-bottom: -2px;
     padding: 0.6rem 0.9rem;
     font-weight: 500;
+    white-space: nowrap;
 }
 
 .knjiga-tabovi .nav-link:hover {
@@ -208,6 +218,12 @@
 .tabela-knjiga tfoot td {
     border-top: 1.5px solid var(--mastilo);
     font-weight: 600;
+}
+
+/* Polje za fajl uz dugme: na uskom ekranu dugme prelazi u novi red umesto da sabije polje. */
+.unos-fajla {
+    flex: 1 1 14rem;
+    min-width: 0;
 }
 
 /* Kontrolna traka iznad tabele: pretraga, aktivni sortovi, reset (<x-tabela>). */

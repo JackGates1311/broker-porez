@@ -117,8 +117,8 @@
                 <h2 class="h6 mb-1" id="ppdg-naslov">Obrazac PPDG-3R</h2>
                 <p class="small text-body-secondary">Prijava se podnosi za polugodište. Deo 4 se popunjava prodajama iz tog polugodišta.</p>
 
-                @unless ($profilPopunjen)
-                    <p class="small text-warning-emphasis">Deo 2 će ostati prazan dok ne popunite <a href="{{ route('profil') }}">poreski profil</a>.</p>
+                @unless ($obaveznikPopunjen)
+                    <p class="small text-warning-emphasis">Deo 2 će ostati prazan dok ne popunite <a href="{{ route('poreski-obaveznik') }}">podatke o poreskom obavezniku</a>.</p>
                 @endunless
 
                 <form method="GET" action="{{ route('izvoz.ppdg-3r') }}">

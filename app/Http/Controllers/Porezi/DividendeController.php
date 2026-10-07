@@ -26,7 +26,7 @@ class DividendeController extends Controller
             'tabela' => $tabela,
             'period' => $period,
             'godine' => $periodi->godine($korisnik),
-            'profilPopunjen' => (bool) $korisnik->poreskiProfil?->jePopunjen(),
+            'obaveznikPopunjen' => (bool) $korisnik->poreskiObaveznik?->jePopunjen(),
         ]);
     }
 }

@@ -46,23 +46,23 @@
             </div>
             <div class="col-lg-5">
                 <dl class="row g-0 mb-0">
-                    <div class="col-6 stavka">
+                    <div class="col-6 stavka d-flex flex-column">
                         <dt>Neto kapitalna dobit</dt>
-                        <dd @class(['dobit' => $kapitalnaDobit['neto_dobit'] > Decimal::nula(), 'gubitak' => $kapitalnaDobit['neto_dobit'] < Decimal::nula()])>
+                        <dd @class(['mt-auto', 'dobit' => $kapitalnaDobit['neto_dobit'] > Decimal::nula(), 'gubitak' => $kapitalnaDobit['neto_dobit'] < Decimal::nula()])>
                             {{ Decimal::format($kapitalnaDobit['neto_dobit']) }}
                         </dd>
                     </div>
-                    <div class="col-6 stavka">
+                    <div class="col-6 stavka d-flex flex-column">
                         <dt>Gubitak za prebijanje</dt>
-                        <dd>{{ Decimal::format($kapitalnaDobit['preostalo_za_prebijanje']) }}</dd>
+                        <dd class="mt-auto">{{ Decimal::format($kapitalnaDobit['preostalo_za_prebijanje']) }}</dd>
                     </div>
-                    <div class="col-6 stavka">
+                    <div class="col-6 stavka d-flex flex-column">
                         <dt>Dividende, bruto</dt>
-                        <dd>{{ Decimal::format($dividende['bruto_rsd']) }}</dd>
+                        <dd class="mt-auto">{{ Decimal::format($dividende['bruto_rsd']) }}</dd>
                     </div>
-                    <div class="col-6 stavka">
+                    <div class="col-6 stavka d-flex flex-column">
                         <dt>Porez na dividende za uplatu</dt>
-                        <dd>{{ Decimal::format($dividende['za_uplatu']) }}</dd>
+                        <dd class="mt-auto">{{ Decimal::format($dividende['za_uplatu']) }}</dd>
                     </div>
                 </dl>
                 <p class="text-body-secondary small mb-0">Svi iznosi su u dinarima, po srednjem kursu NBS na dan transakcije.</p>

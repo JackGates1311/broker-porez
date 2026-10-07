@@ -52,10 +52,12 @@
                 <form method="POST" action="{{ route('uvoz.kursevi') }}" enctype="multipart/form-data">
                     @csrf
                     <label for="fajl" class="form-label small">NBS kursna lista (CSV)</label>
-                    <div class="input-group input-group-sm has-validation">
-                        <input type="file" id="fajl" name="fajl" accept=".csv,text/csv" required class="form-control @error('fajl') is-invalid @enderror">
-                        <button type="submit" class="btn btn-outline-primary">Uvezi kurseve</button>
-                        @error('fajl')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <div class="d-flex flex-wrap align-items-start gap-2">
+                        <div class="unos-fajla">
+                            <input type="file" id="fajl" name="fajl" accept=".csv,text/csv" required class="form-control form-control-sm @error('fajl') is-invalid @enderror">
+                            @error('fajl')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <button type="submit" class="btn btn-outline-primary btn-sm">Uvezi kurseve</button>
                     </div>
                 </form>
             </div>

@@ -23,11 +23,6 @@
                 <div class="collapse navbar-collapse" id="glavnaNavigacija">
                     <ul class="navbar-nav ms-auto align-items-md-center gap-md-2">
                         @auth
-                            @if (auth()->user()->jeVerifikovan())
-                                <li class="nav-item">
-                                    <a class="nav-link @if (request()->routeIs('profil')) active @endif" href="{{ route('profil') }}">Poreski profil</a>
-                                </li>
-                            @endif
                             <li class="nav-item">
                                 <span class="navbar-text">{{ auth()->user()->korisnicko_ime }}</span>
                             </li>

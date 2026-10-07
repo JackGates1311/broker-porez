@@ -33,7 +33,7 @@ class KapitalnaDobitController extends Controller
             'period' => $period,
             'godine' => $godine,
             'prijava' => $prijava,
-            'profilPopunjen' => (bool) $korisnik->poreskiProfil?->jePopunjen(),
+            'obaveznikPopunjen' => (bool) $korisnik->poreskiObaveznik?->jePopunjen(),
         ]);
     }
 }

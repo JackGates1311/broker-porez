@@ -47,9 +47,18 @@ return [
         'symbols' => 'Polje :attribute mora sadržati najmanje jedan simbol.',
         'uncompromised' => 'Uneta :attribute se pojavila u curenju podataka. Izaberite drugu.',
     ],
+    'regex' => 'Format polja :attribute nije ispravan.',
     'required' => 'Polje :attribute je obavezno.',
+    'required_if' => 'Polje :attribute je obavezno kada je :other :value.',
     'string' => 'Polje :attribute mora biti tekst.',
     'unique' => 'Uneto :attribute je već zauzeto.',
+
+    'values' => [
+        'tip_obaveznika' => [
+            '3' => 'nerezident sa boravištem u Republici',
+            '4' => 'nerezident bez boravišta u Republici',
+        ],
+    ],
 
     'attributes' => [
         'adresa' => 'adresa',
@@ -60,18 +69,31 @@ return [
         'godina' => 'godina',
         'ime_prezime' => 'ime i prezime',
         'jmbg' => 'JMBG',
+        'jmbg_podnosioca' => 'JMBG podnosioca prijave',
         'kod' => 'kod',
         'korisnicko_ime' => 'korisničko ime',
         'lozinka' => 'lozinka',
         'nacin_ostvarivanja' => 'način ostvarivanja',
         'osnov_za_prijavu' => 'osnov za prijavu',
+        'pib' => 'poreski identifikacioni broj',
+        'pib_punomocnika' => 'JMBG/PIB punomoćnika',
         'polugodiste' => 'polugodište',
-        'prebivaliste_sifra' => 'šifra opštine',
+        'prebivaliste' => 'prebivalište/boravište/sedište/opština ostvarivanja prihoda',
         'sifra_vrste_prihoda' => 'šifra vrste prihoda',
         'telefon' => 'telefon',
+        'tip_obaveznika' => 'tip obaveznika',
         'token' => 'link',
         'vrsta_prijave' => 'vrsta prijave',
         'zemlja_rezidentstva' => 'zemlja rezidentstva',
+    ],
+
+    'custom' => [
+        'email' => [
+            'regex' => 'Email adresa mora imati domen sa nastavkom, npr. ime@primer.rs.',
+        ],
+        'telefon' => [
+            'regex' => 'Broj telefona sme da sadrži samo cifre, razmake i znakove + - / ( ) i mora imati od 6 do 15 cifara.',
+        ],
     ],
 
 ];

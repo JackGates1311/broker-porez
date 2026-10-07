@@ -27,11 +27,12 @@
                 'kapitalna-dobit' => 'Kapitalna dobit',
                 'dividende' => 'Dividende',
                 'uvoz' => 'Uvoz i transakcije',
+                'poreski-obaveznik' => 'Poreski obaveznik',
             ] as $ruta => $naziv)
                 <li class="nav-item">
                     <a class="nav-link @if (request()->routeIs($ruta)) active @endif"
                        @if (request()->routeIs($ruta)) aria-current="page" @endif
-                       href="{{ route($ruta, in_array($ruta, ['uvoz'], true) ? [] : array_filter(['period' => request('period')])) }}">{{ $naziv }}</a>
+                       href="{{ route($ruta, in_array($ruta, ['uvoz', 'poreski-obaveznik'], true) ? [] : array_filter(['period' => request('period')])) }}">{{ $naziv }}</a>
                 </li>
             @endforeach
         </ul>

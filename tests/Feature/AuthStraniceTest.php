@@ -19,7 +19,7 @@ class AuthStraniceTest extends TestCase
 
     public function test_gost_nema_pristup_poreskoj_knjizi(): void
     {
-        foreach (['/kapitalna-dobit', '/dividende', '/uvoz', '/profil', '/izvoz/ppdg-3r?godina=2026&polugodiste=1', '/izvoz/pp-opo/1'] as $adresa) {
+        foreach (['/kapitalna-dobit', '/dividende', '/uvoz', '/poreski-obaveznik', '/izvoz/ppdg-3r?godina=2026&polugodiste=1', '/izvoz/pp-opo/1'] as $adresa) {
             $this->get($adresa)->assertRedirect(route('prijava'));
         }
 
