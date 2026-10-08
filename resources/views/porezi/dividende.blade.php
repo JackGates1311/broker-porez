@@ -10,7 +10,7 @@
             @if ($ukupno === 0)
                 <div class="prazno">
                     <p class="mb-2">Nema isplaćenih dividendi u periodu „{{ $period->naziv() }}”.</p>
-                    <a href="{{ route('uvoz') }}">Uvezi Trading 212 izvod</a>
+                    <a href="{{ route('uvoz') }}">Uvezi izvod brokera</a>
                 </div>
             @else
                 {{-- Šifre za PP OPO; dugmad u tabeli šalju ovu formu na adresu konkretne dividende. --}}

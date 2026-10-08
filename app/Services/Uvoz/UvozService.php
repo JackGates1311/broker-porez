@@ -6,27 +6,30 @@ use App\Models\Imovina;
 use App\Models\Korisnik;
 use App\Services\Kursevi\PrimenaKurseva;
 use App\Support\Decimal;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 
-class Trading212UvozService
+/**
+ * Upisuje izvod bilo kog brokera: parser daje redove nezavisne od brokera, a ovde
+ * se radi dedupe, upis imovine i transakcija i preuzimanje kurseva (posle čega
+ * PrimenaKurseva preračunava FIFO).
+ */
+class UvozService
 {
     public function __construct(
-        private readonly Trading212CsvParser $parser,
         private readonly PrimenaKurseva $primenaKurseva,
     ) {}
 
     /**
-     * @param  list<UploadedFile>  $fajlovi
+     * @param  array<string, string>  $fajlovi  putanja => originalni naziv fajla
      */
-    public function uvezi(Korisnik $korisnik, array $fajlovi): UvozRezime
+    public function uvezi(Korisnik $korisnik, ParserIzvoda $parser, array $fajlovi): UvozRezime
     {
         $redovi = [];
         $greske = [];
 
-        foreach ($fajlovi as $fajl) {
+        foreach ($fajlovi as $putanja => $naziv) {
             try {
-                foreach ($this->parser->parsiraj($fajl->getRealPath(), $fajl->getClientOriginalName()) as $red) {
+                foreach ($parser->parsiraj($putanja, $naziv) as $red) {
                     // Isti red se može pojaviti u više fajlova (preklapajući periodi).
                     $redovi[$red->jedinstveniKljuc] = $red;
                 }
@@ -34,7 +37,7 @@ class Trading212UvozService
                 $greske[] = $e->getMessage();
             }
 
-            array_push($greske, ...$this->parser->greske());
+            array_push($greske, ...$parser->greske());
         }
 
         $uvezeno = DB::transaction(function () use ($korisnik, $redovi) {
@@ -46,7 +49,9 @@ class Trading212UvozService
                     'korisnik_id' => $korisnik->id,
                     'broker_transakcija_id' => $r->brokerId,
                     'imovina_id' => $r->isin !== null ? $imovinaPoIsinu[$r->isin] : null,
-                    'tip_akcije' => $r->akcija,
+                    'tip_akcije' => mb_substr($r->akcija, 0, 50),
+                    'tip' => $r->tip->value,
+                    'izvor' => $r->izvor->value,
                     'vreme_utc' => $r->vremeUtc->format('Y-m-d H:i:s'),
                     'kolicina' => Decimal::zaBazu($r->kolicina) ?? '0',
                     'cena_po_akciji' => Decimal::zaBazu($r->cenaPoAkciji) ?? '0',

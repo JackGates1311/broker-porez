@@ -13,7 +13,7 @@ use Throwable;
  * kolona razlikuje od exporta do exporta (Time / Time (UTC), opcione kolone za
  * ID, Notes, Result, porez po odbitku i razne naknade).
  */
-final class Trading212CsvParser
+final class Trading212CsvParser implements ParserIzvoda
 {
     /**
      * Kolone sa naknadama koje se sabiraju u "provizija" (Charge amount NIJE naknada,
@@ -143,6 +143,7 @@ final class Trading212CsvParser
             provizija: $provizija,
             valutaProvizije: $valutaProvizije,
             jedinstveniKljuc: $kljuc,
+            izvor: IzvorUvoza::Trading212,
         );
     }
 

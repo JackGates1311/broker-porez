@@ -10,7 +10,9 @@ use App\Models\Transakcija;
 use App\Services\Kursevi\NbsCsvParser;
 use App\Services\Kursevi\NbsKursService;
 use App\Services\Kursevi\PrimenaKurseva;
-use App\Services\Uvoz\Trading212UvozService;
+use App\Services\Uvoz\IzvorUvoza;
+use App\Services\Uvoz\Trading212CsvParser;
+use App\Services\Uvoz\UvozService;
 use App\Tabele\TransakcijeTabela;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -36,14 +38,22 @@ class UvozController extends Controller
             'transakcije' => $tabela->primeni($upit)->paginate(50)->withQueryString(),
             'ukupno' => $korisnik->transakcije()->count(),
             'bezKursa' => $kursevi->bezKursa($korisnik)->with('imovina')->orderBy('vreme_utc')->get(),
+            'izvor' => IzvorUvoza::izKoda($request->query('izvor')),
+            'sabloni' => $korisnik->sabloniUvoza()->orderBy('naziv')->get(),
         ]);
     }
 
-    public function trading212(UvozTrading212Request $request, Trading212UvozService $uvoz): RedirectResponse
+    public function trading212(UvozTrading212Request $request, UvozService $uvoz, Trading212CsvParser $parser): RedirectResponse
     {
-        $rezime = $uvoz->uvezi($request->user(), $request->file('fajlovi'));
+        $fajlovi = [];
 
-        return redirect()->route('uvoz')
+        foreach ($request->file('fajlovi') as $fajl) {
+            $fajlovi[$fajl->getRealPath()] = $fajl->getClientOriginalName();
+        }
+
+        $rezime = $uvoz->uvezi($request->user(), $parser, $fajlovi);
+
+        return redirect()->route('uvoz', ['izvor' => IzvorUvoza::Trading212->kod()])
             ->with('status', $rezime->poruka())
             ->with('greske_uvoza', $rezime->greske);
     }
@@ -61,14 +71,14 @@ class UvozController extends Controller
         $broj = $kursevi->sacuvajIzListe($lista);
         $primena->primeni($request->user());
 
-        return redirect()->route('uvoz')->with('status', "Sačuvano kurseva: {$broj}. Obračun je osvežen.");
+        return redirect()->route('uvoz', $request->only('izvor'))->with('status', "Sačuvano kurseva: {$broj}. Obračun je osvežen.");
     }
 
     public function osveziKurseve(Request $request, PrimenaKurseva $primena): RedirectResponse
     {
         $neuspesni = $primena->preuzmiIPrimeni($request->user());
 
-        return redirect()->route('uvoz')->with('status', $neuspesni === []
+        return redirect()->route('uvoz', $request->only('izvor'))->with('status', $neuspesni === []
             ? 'Kursevi su preuzeti i obračun je osvežen.'
             : 'Kurs nije preuzet za: '.implode(', ', $neuspesni).'. Pokušajte ponovo ili uvezite NBS kursnu listu.');
     }

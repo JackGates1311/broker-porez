@@ -11,6 +11,7 @@ use App\Http\Controllers\Porezi\IzvozController;
 use App\Http\Controllers\Porezi\KapitalnaDobitController;
 use App\Http\Controllers\Porezi\PoreskiObaveznikController;
 use App\Http\Controllers\Porezi\UvozController;
+use App\Http\Controllers\Porezi\UvozRucniController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/pocetna');
@@ -49,6 +50,21 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/uvoz', [UvozController::class, 'index'])->name('uvoz');
         Route::post('/uvoz/trading212', [UvozController::class, 'trading212'])->name('uvoz.trading212');
+
+        Route::controller(UvozRucniController::class)->prefix('/uvoz/rucni')->group(function () {
+            Route::post('/', 'zapocni')->name('uvoz.rucni');
+            Route::get('/format', 'format')->name('uvoz.rucni.format');
+            Route::post('/format', 'sacuvajFormat')->name('uvoz.rucni.format.sacuvaj');
+            Route::get('/kolone', 'kolone')->name('uvoz.rucni.kolone');
+            Route::post('/kolone', 'sacuvajKolone')->name('uvoz.rucni.kolone.sacuvaj');
+            Route::get('/akcije', 'akcije')->name('uvoz.rucni.akcije');
+            Route::post('/akcije', 'sacuvajAkcije')->name('uvoz.rucni.akcije.sacuvaj');
+            Route::get('/pregled', 'pregled')->name('uvoz.rucni.pregled');
+            Route::post('/uvezi', 'uvezi')->name('uvoz.rucni.uvezi');
+            Route::post('/odustani', 'odustani')->name('uvoz.rucni.odustani');
+        });
+        Route::delete('/uvoz/sabloni/{sablon}', [UvozRucniController::class, 'obrisiSablon'])->whereNumber('sablon')->name('uvoz.sabloni.obrisi');
+
         Route::post('/uvoz/kursevi', [UvozController::class, 'kursevi'])->name('uvoz.kursevi');
         Route::post('/kursevi/osvezi', [UvozController::class, 'osveziKurseve'])->name('kursevi.osvezi');
         Route::delete('/transakcije', [UvozController::class, 'obrisiSve'])->name('transakcije.obrisi');

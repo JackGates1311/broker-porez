@@ -120,7 +120,7 @@
                 </div>
             </div>
 
-            <div class="d-flex gap-2 mt-4">
+            <div class="d-flex justify-content-end gap-2 mt-4">
                 <button type="submit" class="btn btn-primary">Sačuvaj</button>
             </div>
         </form>

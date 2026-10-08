@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Enums\TipTransakcije;
+use App\Services\Uvoz\IzvorUvoza;
 use App\Services\Uvoz\Trading212CsvParser;
 use App\Services\Uvoz\UvezeniRed;
 use BcMath\Number;
@@ -28,6 +29,7 @@ class Trading212CsvParserTest extends TestCase
         $this->assertCount(1, $redovi);
         $red = $redovi[0];
         $this->assertSame(TipTransakcije::Dividenda, $red->tip);
+        $this->assertSame(IzvorUvoza::Trading212, $red->izvor);
         $this->assertSame('2025-09-10 12:12:59', $red->vremeUtc->format('Y-m-d H:i:s'));
         $this->assertSame('2025-09-10', $red->datumSrb()->format('Y-m-d'));
         $this->assertSame('US4592001014', $red->isin);

@@ -31,8 +31,8 @@ final class KapitalnaDobitTabela
 
         return Tabela::od([
             Kolona::enumeracija('tip', 'Tip')
-                ->opcija(TipTransakcije::Kupovina->value, TipTransakcije::Kupovina->naziv(), ...TipTransakcije::Kupovina->sqlUslov('transakcije.tip_akcije'))
-                ->opcija(TipTransakcije::Prodaja->value, TipTransakcije::Prodaja->naziv(), ...TipTransakcije::Prodaja->sqlUslov('transakcije.tip_akcije')),
+                ->opcija(TipTransakcije::Kupovina->value, TipTransakcije::Kupovina->naziv(), ...TipTransakcije::Kupovina->sqlUslov('transakcije.tip'))
+                ->opcija(TipTransakcije::Prodaja->value, TipTransakcije::Prodaja->naziv(), ...TipTransakcije::Prodaja->sqlUslov('transakcije.tip')),
             Kolona::datum('vreme', 'Datum i vreme (SRB)')->izraz('transakcije.vreme_utc'),
             Kolona::tekst('simbol', 'Simbol')->izraz('i.simbol')->iTrazi('i.naziv', 'i.isin'),
             Kolona::decimalni('kolicina', 'Količina', 8)->izraz('transakcije.kolicina'),

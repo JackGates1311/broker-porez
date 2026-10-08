@@ -438,3 +438,65 @@
     outline: 2px solid var(--pecat);
     outline-offset: 2px;
 }
+
+/* Traka koraka čarobnjaka ručnog uvoza (resources/views/porezi/uvoz-rucni/_koraci.blade.php). */
+.koraci-uvoza {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.25rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.koraci-uvoza a,
+.koraci-uvoza li > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--tiho);
+    text-decoration: none;
+}
+
+.koraci-uvoza .broj {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    border: 1px solid var(--linija);
+    border-radius: 50%;
+    background: #fff;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.koraci-uvoza .zavrsen a {
+    color: var(--pecat);
+}
+
+.koraci-uvoza .zavrsen .broj {
+    border-color: var(--pecat);
+    background: var(--pecat-svetao);
+}
+
+.koraci-uvoza a:hover {
+    text-decoration: underline;
+}
+
+.koraci-uvoza .aktivan > span {
+    color: var(--mastilo);
+    font-weight: 600;
+}
+
+.koraci-uvoza .aktivan .broj {
+    border-color: var(--pecat);
+    background: var(--pecat);
+    color: #fff;
+}
+
+/* Red zaglavlja u pregledu sirovog CSV-a. */
+.tabela-knjiga tr.red-zaglavlja > * {
+    --bs-table-bg: var(--pecat-svetao);
+    font-weight: 600;
+}

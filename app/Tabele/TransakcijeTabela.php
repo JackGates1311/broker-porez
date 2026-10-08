@@ -3,6 +3,7 @@
 namespace App\Tabele;
 
 use App\Models\Transakcija;
+use App\Services\Uvoz\IzvorUvoza;
 use App\Support\Decimal;
 use App\Support\Tabela\Kolona;
 use App\Support\Tabela\Tabela;
@@ -29,6 +30,11 @@ final class TransakcijeTabela
                 ->izraz('transakcije.tip_akcije')
                 ->klasa('text-nowrap')
                 ->prikaz(fn (Transakcija $t) => $t->tip_akcije),
+            array_reduce(
+                IzvorUvoza::cases(),
+                fn (Kolona $kolona, IzvorUvoza $izvor) => $kolona->opcija($izvor->value, $izvor->naziv(), 'transakcije.izvor = ?', [$izvor->value]),
+                Kolona::enumeracija('izvor', 'Izvor')->klasa('text-nowrap small'),
+            )->prikaz(fn (Transakcija $t) => $t->izvor()->naziv()),
             Kolona::tekst('simbol', 'Simbol')
                 ->izraz('i.simbol')
                 ->iTrazi('i.naziv', 'i.isin')

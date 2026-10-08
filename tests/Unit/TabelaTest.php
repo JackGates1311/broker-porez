@@ -78,9 +78,9 @@ class TabelaTest extends TestCase
             ->opcija('KUPOVINA', 'Kupovina', ...TipTransakcije::Kupovina->sqlUslov('t.tip'))
             ->opcija('PRODAJA', 'Prodaja', ...TipTransakcije::Prodaja->sqlUslov('t.tip'));
 
-        $this->assertSame([['((t.tip LIKE ?))', ['% sell']]], $tip->usloviPretrage('prod'));
+        $this->assertSame([['(t.tip = ?)', ['PRODAJA']]], $tip->usloviPretrage('prod'));
         $this->assertSame([], $tip->usloviPretrage('dividenda'));
-        $this->assertSame(['CASE WHEN (t.tip LIKE ?) THEN 0 WHEN (t.tip LIKE ?) THEN 1 ELSE 2 END DESC', ['% buy', '% sell']], $tip->sortiranje('desc'));
+        $this->assertSame(['CASE WHEN t.tip = ? THEN 0 WHEN t.tip = ? THEN 1 ELSE 2 END DESC', ['KUPOVINA', 'PRODAJA']], $tip->sortiranje('desc'));
     }
 
     public function test_sortiranje_stavlja_null_na_kraj(): void

@@ -27,6 +27,7 @@ final readonly class UvezeniRed
         public ?Number $provizija,
         public ?string $valutaProvizije,
         public string $jedinstveniKljuc,
+        public IzvorUvoza $izvor,
     ) {}
 
     /**

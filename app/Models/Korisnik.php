@@ -72,6 +72,14 @@ class Korisnik extends Authenticatable
     }
 
     /**
+     * @return HasMany<SablonUvoza, $this>
+     */
+    public function sabloniUvoza(): HasMany
+    {
+        return $this->hasMany(SablonUvoza::class, 'korisnik_id');
+    }
+
+    /**
      * @return HasOne<PoreskiObaveznik, $this>
      */
     public function poreskiObaveznik(): HasOne

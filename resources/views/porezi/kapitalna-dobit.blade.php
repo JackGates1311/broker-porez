@@ -11,7 +11,7 @@
             @if ($ukupno === 0)
                 <div class="prazno">
                     <p class="mb-2">Nema kupovina ni prodaja u periodu „{{ $period->naziv() }}”.</p>
-                    <a href="{{ route('uvoz') }}">Uvezi Trading 212 izvod</a>
+                    <a href="{{ route('uvoz') }}">Uvezi izvod brokera</a>
                 </div>
             @else
                 <x-tabela id="kapitalna-dobit" :tabela="$tabela" :redovi="$redovi" :ukupno="$ukupno" klasa="table-sm align-middle">

@@ -26,22 +26,6 @@ enum TipTransakcije: string
         };
     }
 
-    /**
-     * Uslovi za SQL upit nad kolonom tip_akcije (LIKE obrasci).
-     *
-     * @return list<string>
-     */
-    public function sqlObrasci(): array
-    {
-        return match ($this) {
-            self::Kupovina => ['% buy'],
-            self::Prodaja => ['% sell'],
-            self::Dividenda => ['Dividend%'],
-            self::Depozit => ['Deposit'],
-            self::Ostalo => [],
-        };
-    }
-
     public function naziv(): string
     {
         return match ($this) {
@@ -54,20 +38,12 @@ enum TipTransakcije: string
     }
 
     /**
-     * Isti uslov kao sqlObrasci(), kao raw SQL sa bindinzima (za CASE u sortiranju tabela).
+     * Uslov nad kolonom tip kao raw SQL sa bindinzima (za enumeraciju u tabelama).
      *
      * @return array{0: string, 1: list<string>}
      */
     public function sqlUslov(string $kolona): array
     {
-        if ($this === self::Ostalo) {
-            $obrasci = array_merge(...array_map(fn (self $t) => $t->sqlObrasci(), self::cases()));
-
-            return ['NOT ('.implode(' OR ', array_fill(0, count($obrasci), "{$kolona} LIKE ?")).')', $obrasci];
-        }
-
-        $obrasci = $this->sqlObrasci();
-
-        return ['('.implode(' OR ', array_fill(0, count($obrasci), "{$kolona} LIKE ?")).')', $obrasci];
+        return ["{$kolona} = ?", [$this->value]];
     }
 }

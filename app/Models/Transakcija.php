@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\TipTransakcije;
+use App\Services\Uvoz\IzvorUvoza;
 use App\Support\Decimal;
 use BcMath\Number;
 use Carbon\CarbonImmutable;
@@ -38,7 +39,12 @@ class Transakcija extends Model
 
     public function tip(): TipTransakcije
     {
-        return TipTransakcije::izAkcije($this->tip_akcije);
+        return TipTransakcije::from($this->tip);
+    }
+
+    public function izvor(): IzvorUvoza
+    {
+        return IzvorUvoza::from($this->izvor);
     }
 
     public function decimal(string $kolona): ?Number
@@ -58,15 +64,7 @@ class Transakcija extends Model
      */
     public function scopeTipa(Builder $upit, TipTransakcije ...$tipovi): void
     {
-        $kolona = $upit->qualifyColumn('tip_akcije');
-
-        $upit->where(function (Builder $q) use ($tipovi, $kolona) {
-            foreach ($tipovi as $tip) {
-                foreach ($tip->sqlObrasci() as $obrazac) {
-                    $q->orWhere($kolona, 'like', $obrazac);
-                }
-            }
-        });
+        $upit->whereIn($upit->qualifyColumn('tip'), array_map(fn (TipTransakcije $t) => $t->value, $tipovi));
     }
 
     /**
