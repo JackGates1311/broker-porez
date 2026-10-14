@@ -2,6 +2,7 @@
 
 @use('App\Models\PoreskiObaveznik')
 @use('App\Support\Drzave')
+@use('App\Support\Opstine')
 
 @section('naslov', 'Poreski obaveznik')
 
@@ -60,6 +61,22 @@
                     <div class="invalid-feedback">@error('prebivaliste') {{ $message }} @else Unesite prebivalište/boravište. @enderror</div>
                 </div>
 
+                <div class="col-lg-6">
+                    <label for="opstina_sifra" class="form-label">Opština prebivališta (šifra za PP OPO 2.4)</label>
+                    <input id="opstina_sifra" name="opstina_sifra"
+                           value="{{ Opstine::prikaz(old('opstina_sifra', $obaveznik->opstina_sifra)) }}"
+                           list="opstine" maxlength="100" autocomplete="off" placeholder="Počnite da kucate naziv opštine"
+                           required aria-describedby="opstinaPomoc"
+                           class="form-control @error('opstina_sifra') is-invalid @enderror">
+                    <datalist id="opstine">
+                        @foreach (Opstine::sve() as $sifra => $naziv)
+                            <option value="{{ $naziv }} ({{ $sifra }})"></option>
+                        @endforeach
+                    </datalist>
+                    <div id="opstinaPomoc" class="form-text">Opština ili grad prebivališta, npr. Grad Novi Sad (223). Za nerezidenta opština boravišta, odnosno sedišta poreskog punomoćnika.</div>
+                    <div class="invalid-feedback">@error('opstina_sifra') {{ $message }} @else Izaberite opštinu sa liste. @enderror</div>
+                </div>
+
                 <div class="col-12">
                     <label for="adresa" class="form-label">2.5 Adresa poreskog obaveznika</label>
                     <input id="adresa" name="adresa" value="{{ old('adresa', $obaveznik->adresa) }}" maxlength="255"
@@ -95,12 +112,13 @@
                     <div class="invalid-feedback">@error('jmbg_podnosioca') {{ $message }} @else JMBG ima 13 cifara. @enderror</div>
                 </div>
 
-                <div data-prikazi-za-tip="3,4" @class(['col-lg-6', 'd-none' => ! in_array($tip, [3, 4], true)])>
+                {{-- 2.9 se popunjava za svaki tip; rezidentu je unapred upisana Srbija. --}}
+                <div class="col-lg-6">
                     <label for="zemlja_rezidentstva" class="form-label">2.9 Zemlja rezidentstva</label>
                     <input id="zemlja_rezidentstva" name="zemlja_rezidentstva"
-                           value="{{ Drzave::prikaz(old('zemlja_rezidentstva', $obaveznik->zemlja_rezidentstva)) }}"
+                           value="{{ Drzave::prikaz(old('zemlja_rezidentstva', $obaveznik->zemlja_rezidentstva ?? (in_array($tip, [3, 4], true) ? null : 'RS'))) }}"
                            list="drzave" maxlength="100" autocomplete="off" placeholder="Počnite da kucate naziv države"
-                           required @disabled(! in_array($tip, [3, 4], true)) aria-describedby="zemljaPomoc"
+                           required aria-describedby="zemljaPomoc"
                            class="form-control @error('zemlja_rezidentstva') is-invalid @enderror">
                     <datalist id="drzave">
                         @foreach (Drzave::sve() as $oznaka => $naziv)

@@ -33,6 +33,25 @@ class Drzave
     }
 
     /**
+     * Naziv za obrazac: zvanični pun naziv ćirilicom ("Република Србија"), a za države bez
+     * posebnog zvaničnog naziva i teritorije kratki naziv ćirilicom. Nepoznata oznaka ide kakva jeste.
+     */
+    public static function zaObrazac(?string $oznaka): ?string
+    {
+        $naziv = config('drzave_zvanicno.'.$oznaka) ?? config('drzave.'.$oznaka);
+
+        return is_string($naziv) && $oznaka !== null ? Cirilica::izLatinice($naziv) : $oznaka;
+    }
+
+    /**
+     * Troslovna oznaka (ISO 3166-1 alpha-3) za polje 2.8 PP OPO: RS -> SRB.
+     */
+    public static function alfa3(?string $oznaka): ?string
+    {
+        return $oznaka === null ? null : config('drzave_alfa3.'.$oznaka);
+    }
+
+    /**
      * Oznaka iz unosa "Srbija (RS)", "RS" ili "srbija"; null ako država nije prepoznata.
      */
     public static function oznaka(?string $unos): ?string

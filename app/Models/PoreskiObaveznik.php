@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
  * Podaci o poreskom obavezniku, Deo 2 obrazaca PPDG-3R (polja 2.1-2.10) i PP OPO.
  */
 #[Fillable([
-    'tip_obaveznika', 'pib', 'ime_prezime', 'prebivaliste', 'adresa',
+    'tip_obaveznika', 'pib', 'ime_prezime', 'prebivaliste', 'opstina_sifra', 'adresa',
     'telefon', 'email', 'jmbg_podnosioca', 'zemlja_rezidentstva', 'pib_punomocnika',
 ])]
 class PoreskiObaveznik extends Model
@@ -26,10 +26,10 @@ class PoreskiObaveznik extends Model
         4 => 'Nerezidentno fizičko lice koje nema boravište u Republici Srbiji',
     ];
 
-    /** Polja koja svaki obaveznik mora da popuni (2.9 samo nerezident, 2.10 je opciono). */
+    /** Polja koja svaki obaveznik mora da popuni (2.10 je opciono). */
     public const OBAVEZNA_POLJA = [
-        'tip_obaveznika', 'pib', 'ime_prezime', 'prebivaliste', 'adresa',
-        'telefon', 'email', 'jmbg_podnosioca',
+        'tip_obaveznika', 'pib', 'ime_prezime', 'prebivaliste', 'opstina_sifra', 'adresa',
+        'telefon', 'email', 'jmbg_podnosioca', 'zemlja_rezidentstva',
     ];
 
     protected $table = 'poreski_obaveznik';
@@ -45,11 +45,6 @@ class PoreskiObaveznik extends Model
         ];
     }
 
-    public function jeNerezident(): bool
-    {
-        return in_array($this->tip_obaveznika, [3, 4], true);
-    }
-
     public function jePopunjen(): bool
     {
         foreach (self::OBAVEZNA_POLJA as $polje) {
@@ -58,6 +53,6 @@ class PoreskiObaveznik extends Model
             }
         }
 
-        return ! $this->jeNerezident() || filled($this->zemlja_rezidentstva);
+        return true;
     }
 }

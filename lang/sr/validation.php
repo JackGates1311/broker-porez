@@ -92,6 +92,7 @@ return [
         'polugodiste' => 'polugodište',
         'prebivaliste' => 'prebivalište/boravište/sedište/opština ostvarivanja prihoda',
         'red_zaglavlja' => 'red zaglavlja',
+        'opstina_sifra' => 'opština prebivališta',
         'sablon_id' => 'šablon',
         'separator' => 'separator kolona',
         'separator_hiljada' => 'separator hiljada',

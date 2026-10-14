@@ -31,6 +31,7 @@ trait DomenskeTabele
             $tabela->string('ime_prezime', 150)->nullable();
             $tabela->string('adresa')->nullable();
             $tabela->string('prebivaliste')->nullable();
+            $tabela->char('opstina_sifra', 3)->nullable();
             $tabela->string('telefon', 30)->nullable();
             $tabela->string('email', 100)->nullable();
             $tabela->char('jmbg_podnosioca', 13)->nullable();
@@ -129,10 +130,12 @@ trait DomenskeTabele
             'pib' => '0101990710001',
             'ime_prezime' => 'Petar Petrović',
             'prebivaliste' => 'Novi Sad',
+            'opstina_sifra' => '223',
             'adresa' => 'Bulevar oslobođenja 1',
             'telefon' => '0601234567',
             'email' => "{$ime}@example.com",
             'jmbg_podnosioca' => '0101990710001',
+            'zemlja_rezidentstva' => 'RS',
         ]);
 
         return $korisnik;

@@ -40,6 +40,7 @@ class PoreskiObaveznikTest extends TestCase
             $tabela->string('ime_prezime', 150)->nullable();
             $tabela->string('adresa')->nullable();
             $tabela->string('prebivaliste')->nullable();
+            $tabela->char('opstina_sifra', 3)->nullable();
             $tabela->string('telefon', 30)->nullable();
             $tabela->string('email', 100)->nullable();
             $tabela->char('jmbg_podnosioca', 13)->nullable();
@@ -72,6 +73,7 @@ class PoreskiObaveznikTest extends TestCase
             'pib' => '0101990710001',
             'ime_prezime' => 'Petar Petrović',
             'prebivaliste' => 'Novi Sad',
+            'opstina_sifra' => 'Grad Novi Sad (223)',
             'adresa' => 'Bulevar oslobođenja 1',
             'telefon' => '0601234567',
             'email' => 'pera@example.com',
@@ -102,9 +104,10 @@ class PoreskiObaveznikTest extends TestCase
         $this->actingAs($this->korisnik)
             ->put(route('poreski-obaveznik'), [])
             ->assertSessionHasErrors([
-                'tip_obaveznika', 'pib', 'ime_prezime', 'prebivaliste', 'adresa', 'telefon', 'email', 'jmbg_podnosioca',
+                'tip_obaveznika', 'pib', 'ime_prezime', 'prebivaliste', 'opstina_sifra', 'adresa', 'telefon', 'email',
+                'jmbg_podnosioca', 'zemlja_rezidentstva',
             ])
-            ->assertSessionDoesntHaveErrors(['zemlja_rezidentstva', 'pib_punomocnika']);
+            ->assertSessionDoesntHaveErrors(['pib_punomocnika']);
 
         $this->assertNull($this->korisnik->poreskiObaveznik()->first());
     }
@@ -139,15 +142,32 @@ class PoreskiObaveznikTest extends TestCase
         }
     }
 
-    public function test_nerezident_mora_uneti_zemlju_rezidentstva(): void
+    public function test_svaki_tip_mora_uneti_zemlju_rezidentstva(): void
     {
-        $this->actingAs($this->korisnik)
-            ->put(route('poreski-obaveznik'), $this->ispravniPodaci(['tip_obaveznika' => '3', 'zemlja_rezidentstva' => '']))
-            ->assertSessionHasErrors('zemlja_rezidentstva');
+        foreach (['1', '3'] as $tip) {
+            $this->actingAs($this->korisnik)
+                ->put(route('poreski-obaveznik'), $this->ispravniPodaci(['tip_obaveznika' => $tip, 'zemlja_rezidentstva' => '']))
+                ->assertSessionHasErrors('zemlja_rezidentstva');
+        }
 
         $this->actingAs($this->korisnik)
             ->put(route('poreski-obaveznik'), $this->ispravniPodaci(['tip_obaveznika' => '3', 'zemlja_rezidentstva' => 'Atlantida']))
             ->assertSessionHasErrors('zemlja_rezidentstva');
+    }
+
+    public function test_opstina_se_bira_iz_sifarnika(): void
+    {
+        foreach (['Novi Sad', '223', 'grad novi sad'] as $unos) {
+            $this->actingAs($this->korisnik)
+                ->put(route('poreski-obaveznik'), $this->ispravniPodaci(['opstina_sifra' => $unos]))
+                ->assertSessionDoesntHaveErrors('opstina_sifra');
+        }
+
+        foreach (['', 'Atlantida', '999'] as $unos) {
+            $this->actingAs($this->korisnik)
+                ->put(route('poreski-obaveznik'), $this->ispravniPodaci(['opstina_sifra' => $unos]))
+                ->assertSessionHasErrors('opstina_sifra');
+        }
     }
 
     public function test_prvi_unos_otkljucava_aplikaciju(): void
@@ -159,8 +179,9 @@ class PoreskiObaveznikTest extends TestCase
 
         $obaveznik = $this->korisnik->poreskiObaveznik()->firstOrFail();
         $this->assertSame(1, $obaveznik->tip_obaveznika);
-        // Rezident nema zemlju rezidentstva ni punomoćnika.
-        $this->assertNull($obaveznik->zemlja_rezidentstva);
+        $this->assertSame('223', $obaveznik->opstina_sifra);
+        // Zemlja rezidentstva se čuva za svaki tip, a punomoćnik samo za tip 4.
+        $this->assertSame('DE', $obaveznik->zemlja_rezidentstva);
         $this->assertNull($obaveznik->pib_punomocnika);
         $this->assertTrue($obaveznik->jePopunjen());
 
@@ -185,7 +206,9 @@ class PoreskiObaveznikTest extends TestCase
     public function test_nepotpun_obaveznik_nije_popunjen(): void
     {
         $this->assertFalse((new PoreskiObaveznik($this->ispravniPodaci(['prebivaliste' => null])))->jePopunjen());
+        $this->assertFalse((new PoreskiObaveznik($this->ispravniPodaci(['opstina_sifra' => null])))->jePopunjen());
         $this->assertFalse((new PoreskiObaveznik($this->ispravniPodaci(['tip_obaveznika' => 3, 'zemlja_rezidentstva' => null])))->jePopunjen());
-        $this->assertTrue((new PoreskiObaveznik($this->ispravniPodaci(['tip_obaveznika' => 1, 'zemlja_rezidentstva' => null])))->jePopunjen());
+        $this->assertFalse((new PoreskiObaveznik($this->ispravniPodaci(['tip_obaveznika' => 1, 'zemlja_rezidentstva' => null])))->jePopunjen());
+        $this->assertTrue((new PoreskiObaveznik($this->ispravniPodaci(['tip_obaveznika' => 1, 'zemlja_rezidentstva' => 'RS'])))->jePopunjen());
     }
 }

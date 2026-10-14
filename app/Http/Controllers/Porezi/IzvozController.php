@@ -10,6 +10,7 @@ use App\Models\Korisnik;
 use App\Models\PoreskiObaveznik;
 use App\Models\Transakcija;
 use App\Services\Obrasci\ObrazacPdf;
+use App\Services\Obrasci\RasporedDela4;
 use App\Services\Porezi\DividendeIzvestaj;
 use App\Services\Porezi\KapitalnaDobitIzvestaj;
 use App\Services\Porezi\Period;
@@ -22,12 +23,11 @@ class IzvozController extends Controller
         /** @var Korisnik $korisnik */
         $korisnik = $request->user();
         $period = Period::za((int) $request->validated('godina'), (int) $request->validated('polugodiste'));
-        $obracun = $izvestaj->za($korisnik, $period);
+        $prodaje = $izvestaj->za($korisnik, $period)['redovi']->filter(fn ($r) => $r->tip === TipTransakcije::Prodaja)->values();
 
         return $pdf->preuzimanje('obrasci.ppdg-3r', [
             'period' => $period,
-            'prodaje' => $obracun['redovi']->filter(fn ($r) => $r->tip === TipTransakcije::Prodaja)->values(),
-            'zbir' => $obracun['zbir'],
+            'strane' => RasporedDela4::strane($prodaje),
             'obaveznik' => $korisnik->poreskiObaveznik ?? new PoreskiObaveznik,
             'sifre' => [
                 'vrsta_prijave' => $request->validated('vrsta_prijave') ?? config('porezi.ppdg3r.vrsta_prijave'),
