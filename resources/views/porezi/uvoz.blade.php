@@ -27,7 +27,8 @@
                         U aplikaciji Trading 212: History → Export, izaberite period i preuzmite CSV. Jedan izvod pokriva najviše 12 meseci,
                         pa za celu istoriju uvezite sve fajlove odjednom. Transakcije koje već postoje se preskaču.
                     </p>
-                    <form method="POST" action="{{ route('uvoz.trading212') }}" enctype="multipart/form-data">
+                    <form method="POST" action="{{ route('uvoz.trading212') }}" enctype="multipart/form-data"
+                          data-slanje="Uvozim i preuzimam kurseve…" data-slanje-napomena="Za svaki datum se preuzima kurs NBS, što može da potraje. Ne zatvarajte stranicu.">
                         @csrf
                         <label for="fajlovi" class="form-label">CSV fajlovi</label>
                         <div class="d-flex flex-wrap align-items-start gap-2">
@@ -107,7 +108,8 @@
                     <p class="small text-success mb-3">Sve transakcije imaju kurs.</p>
                 @endif
 
-                <form method="POST" action="{{ route('kursevi.osvezi') }}" class="mb-3">
+                <form method="POST" action="{{ route('kursevi.osvezi') }}" class="mb-3"
+                      data-slanje="Preuzimam kurseve…" data-slanje-napomena="Ovo može da potraje. Ne zatvarajte stranicu.">
                     @csrf
                     <input type="hidden" name="izvor" value="{{ $izvor->kod() }}">
                     <button type="submit" class="btn btn-primary btn-sm" @disabled($bezKursa->isEmpty())>Preuzmi kurseve koji nedostaju</button>

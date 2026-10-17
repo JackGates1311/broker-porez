@@ -21,6 +21,52 @@ export function initPotvrde(): void {
 }
 
 /**
+ * Forma sa data-slanje="<poruka>" posle slanja isključuje dugme, prikazuje spinner i poruku
+ * (dugi zahtevi, npr. uvoz sa preuzimanjem NBS kurseva). Napomena ide u data-slanje-napomena.
+ */
+export function initSlanje(): void {
+    document.querySelectorAll<HTMLFormElement>('form[data-slanje]').forEach((forma) => {
+        const dugme = forma.querySelector<HTMLButtonElement>('button[type="submit"]');
+
+        if (!dugme) {
+            return;
+        }
+
+        const prvobitno = Array.from(dugme.childNodes);
+        const status = document.createElement('p');
+        status.className = 'small text-body-secondary mt-2 mb-0';
+        status.setAttribute('role', 'status');
+        status.setAttribute('aria-live', 'polite');
+        forma.append(status);
+
+        forma.addEventListener('submit', (dogadjaj) => {
+            // data-potvrda je možda otkazala slanje.
+            if (dogadjaj.defaultPrevented) {
+                return;
+            }
+
+            const spinner = document.createElement('span');
+            spinner.className = 'spinner-border spinner-border-sm me-2';
+            spinner.setAttribute('aria-hidden', 'true');
+            dugme.replaceChildren(spinner, forma.dataset.slanje ?? 'Šaljem…');
+            status.textContent = forma.dataset.slanjeNapomena ?? '';
+
+            // Isključeno tek posle slanja, da bi dugme (name/value) ušlo u zahtev.
+            setTimeout(() => (dugme.disabled = true));
+        });
+
+        // Povratak na stranicu (Back, bfcache) vraća dugme u prvobitno stanje.
+        window.addEventListener('pageshow', (dogadjaj) => {
+            if (dogadjaj.persisted) {
+                dugme.replaceChildren(...prvobitno);
+                dugme.disabled = false;
+                status.textContent = '';
+            }
+        });
+    });
+}
+
+/**
  * Lista sa data-lista-fajlova="<id polja>" prikazuje nazive izabranih fajlova.
  */
 export function initListeFajlova(): void {

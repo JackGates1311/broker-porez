@@ -5,8 +5,12 @@ namespace App\Services\Kursevi;
 use App\Models\Kurs;
 use App\Support\Decimal;
 use BcMath\Number;
+use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\Pool;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use RuntimeException;
 use Throwable;
 
 /**
@@ -67,17 +71,28 @@ class NbsKursService
             ->get(['datum', 'valuta'])
             ->groupBy(fn (Kurs $k) => $k->datum->format('Y-m-d'));
 
-        $neuspesni = [];
+        $zaPreuzimanje = [];
 
         foreach ($trazeno as $datum => $valute) {
             $nedostaju = array_diff(array_keys($valute), $postojeci->get($datum)?->pluck('valuta')->all() ?? []);
 
-            if ($nedostaju === []) {
-                continue;
+            if ($nedostaju !== []) {
+                $zaPreuzimanje[$datum] = $nedostaju;
             }
+        }
 
+        // Datumi se preuzimaju paralelno (najviše config porezi.kurs_api_paralelno odjednom).
+        $odgovori = $zaPreuzimanje === [] ? [] : Http::pool(function (Pool $pool) use ($zaPreuzimanje) {
+            foreach (array_keys($zaPreuzimanje) as $datum) {
+                $this->zahtev($pool->as($datum), $datum);
+            }
+        }, config('porezi.kurs_api_paralelno'));
+
+        $neuspesni = [];
+
+        foreach ($zaPreuzimanje as $datum => $nedostaju) {
             try {
-                $this->sacuvaj($datum, $this->preuzmi($datum), $nedostaju);
+                $this->sacuvaj($datum, $this->procitaj($odgovori[$datum] ?? null), $nedostaju);
             } catch (Throwable $e) {
                 report($e);
                 $neuspesni[] = $datum;
@@ -111,17 +126,28 @@ class NbsKursService
         return count($redovi);
     }
 
+    private function zahtev(PendingRequest $zahtev, string $datum): void
+    {
+        $zahtev->timeout(config('porezi.kurs_api_timeout'))
+            ->retry(2, 500, throw: false)
+            ->acceptJson()
+            ->get(rtrim(config('porezi.kurs_api_url'), '/')."/rates/{$datum}");
+    }
+
     /**
      * @return array<string, Number> valuta => kurs za 1 jedinicu
      */
-    protected function preuzmi(string $datum): array
+    private function procitaj(Response|Throwable|null $odgovor): array
     {
-        $odgovor = Http::timeout(config('porezi.kurs_api_timeout'))
-            ->retry(2, 500)
-            ->acceptJson()
-            ->get(rtrim(config('porezi.kurs_api_url'), '/')."/rates/{$datum}")
-            ->throw()
-            ->json('rates', []);
+        if ($odgovor instanceof Throwable) {
+            throw $odgovor;
+        }
+
+        if ($odgovor === null) {
+            throw new RuntimeException('Nema odgovora API-ja za kurs.');
+        }
+
+        $odgovor = $odgovor->throw()->json('rates', []);
 
         $kursevi = [];
 

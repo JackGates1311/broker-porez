@@ -16,6 +16,9 @@ return [
 
     'kurs_api_timeout' => 10,
 
+    // Koliko datuma se preuzima istovremeno.
+    'kurs_api_paralelno' => 8,
+
     /*
     |--------------------------------------------------------------------------
     | Poreska stopa (kapitalna dobit i dividende)

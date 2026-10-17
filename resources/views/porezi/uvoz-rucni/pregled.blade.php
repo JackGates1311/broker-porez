@@ -34,7 +34,8 @@
         </section>
 
         <section class="col-lg-5" aria-labelledby="uvoz-potvrda-naslov">
-            <form method="POST" action="{{ route('uvoz.rucni.uvezi') }}" class="border bg-white p-4 h-100">
+            <form method="POST" action="{{ route('uvoz.rucni.uvezi') }}" class="border bg-white p-4 h-100"
+                  data-slanje="Uvozim i preuzimam kurseve…" data-slanje-napomena="Za svaki datum se preuzima kurs NBS, što može da potraje. Ne zatvarajte stranicu.">
                 @csrf
                 <h2 class="h5" id="uvoz-potvrda-naslov">Uvoz</h2>
                 <div class="form-check mb-2">
