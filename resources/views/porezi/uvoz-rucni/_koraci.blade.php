@@ -33,6 +33,6 @@
 
     <form method="POST" action="{{ route('uvoz.rucni.odustani') }}" data-potvrda="Prekinuti uvoz? Fajl se briše, a sačuvani šabloni ostaju.">
         @csrf
-        <button type="submit" class="btn btn-outline-secondary btn-sm">Odustani</button>
+        <button type="submit" class="btn btn-outline-secondary btn-sm dugme-odustani">Odustani</button>
     </form>
 </div>

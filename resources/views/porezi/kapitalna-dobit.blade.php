@@ -178,7 +178,7 @@
                 @enderror
 
                 <p id="ppdg-xml-napomena" class="small text-body-secondary mt-2 mb-0">
-                    XML se na portalu ePorezi učitava opcijom „XML unos”. Izveštaj brokera priložite na portalu. Poreska uprava ne objavljuje šemu za PPDG-3R, pa pre podnošenja proverite podatke.
+                    XML se na portalu ePorezi učitava opcijom „XML unos”. Pre podnošenja obavezno proverite podatke.
                 </p>
             </section></div>
             </div>

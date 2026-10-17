@@ -327,6 +327,17 @@
     --bs-btn-focus-shadow-rgb: var(--bs-danger-rgb);
 }
 
+/* Odustani u čarobnjaku uvoza: obično dugme, na hover crvenkasto kao reset tabele. */
+.dugme-odustani {
+    --bs-btn-hover-color: var(--gubitak);
+    --bs-btn-hover-bg: rgba(var(--bs-danger-rgb), 0.1);
+    --bs-btn-hover-border-color: var(--gubitak);
+    --bs-btn-active-color: var(--gubitak);
+    --bs-btn-active-bg: rgba(var(--bs-danger-rgb), 0.15);
+    --bs-btn-active-border-color: var(--gubitak);
+    --bs-btn-focus-shadow-rgb: var(--bs-danger-rgb);
+}
+
 .tabela-knjiga thead th .sort-link {
     color: inherit;
     text-decoration: none;
