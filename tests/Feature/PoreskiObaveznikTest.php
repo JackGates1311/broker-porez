@@ -46,6 +46,8 @@ class PoreskiObaveznikTest extends TestCase
             $tabela->char('jmbg_podnosioca', 13)->nullable();
             $tabela->string('zemlja_rezidentstva', 3)->nullable();
             $tabela->string('pib_punomocnika', 13)->nullable();
+            $tabela->char('tekuci_racun', 18)->nullable();
+            $tabela->string('broj_pasosa', 30)->nullable();
             $tabela->timestamp('azurirano_at')->nullable();
             $tabela->foreign('korisnik_id')->references('id')->on('korisnici')->cascadeOnDelete();
         });
@@ -80,6 +82,7 @@ class PoreskiObaveznikTest extends TestCase
             'jmbg_podnosioca' => '0101990710001',
             'zemlja_rezidentstva' => 'DE',
             'pib_punomocnika' => '123456789',
+            'tekuci_racun' => '265-0000000360051-46',
             ...$izmene,
         ];
     }
@@ -105,11 +108,39 @@ class PoreskiObaveznikTest extends TestCase
             ->put(route('poreski-obaveznik'), [])
             ->assertSessionHasErrors([
                 'tip_obaveznika', 'pib', 'ime_prezime', 'prebivaliste', 'opstina_sifra', 'adresa', 'telefon', 'email',
-                'jmbg_podnosioca', 'zemlja_rezidentstva',
+                'jmbg_podnosioca', 'zemlja_rezidentstva', 'tekuci_racun',
             ])
-            ->assertSessionDoesntHaveErrors(['pib_punomocnika']);
+            ->assertSessionDoesntHaveErrors(['pib_punomocnika', 'broj_pasosa']);
 
         $this->assertNull($this->korisnik->poreskiObaveznik()->first());
+    }
+
+    public function test_tekuci_racun_se_cuva_kao_18_cifara_a_pasos_velikim_slovima(): void
+    {
+        $this->actingAs($this->korisnik)
+            ->put(route('poreski-obaveznik'), $this->ispravniPodaci(['tekuci_racun' => ' 265-360051-46 ', 'broj_pasosa' => 'ab 123456']))
+            ->assertSessionHasNoErrors();
+
+        $obaveznik = $this->korisnik->poreskiObaveznik()->first();
+        $this->assertSame('265000000036005146', $obaveznik->tekuci_racun);
+        $this->assertSame('AB123456', $obaveznik->broj_pasosa);
+
+        $this->actingAs($this->korisnik)
+            ->get(route('poreski-obaveznik'))
+            ->assertSee('value="265-0000000360051-46"', escape: false);
+    }
+
+    public function test_tekuci_racun_mora_imati_ispravan_format_i_kontrolni_broj(): void
+    {
+        foreach (['265000000036005147', '265-36005146', '26500000003600514', 'racun', '265-12345678901234-46'] as $neispravan) {
+            $this->actingAs($this->korisnik)
+                ->put(route('poreski-obaveznik'), $this->ispravniPodaci(['tekuci_racun' => $neispravan]))
+                ->assertSessionHasErrors('tekuci_racun');
+        }
+
+        $this->actingAs($this->korisnik)
+            ->put(route('poreski-obaveznik'), $this->ispravniPodaci(['broj_pasosa' => '12-34']))
+            ->assertSessionHasErrors('broj_pasosa');
     }
 
     public function test_telefon_sme_da_sadrzi_samo_cifre_i_separatore(): void

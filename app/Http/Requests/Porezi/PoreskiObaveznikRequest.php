@@ -5,6 +5,8 @@ namespace App\Http\Requests\Porezi;
 use App\Models\PoreskiObaveznik;
 use App\Support\Drzave;
 use App\Support\Opstine;
+use App\Support\TekuciRacun;
+use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -18,6 +20,7 @@ class PoreskiObaveznikRequest extends FormRequest
 
     /**
      * Polje 2.9 se bira kao "Srbija (RS)", a opština kao "Grad Novi Sad (223)"; čuvaju se oznaka i šifra.
+     * Tekući račun se unosi sa crticama ili bez njih, a čuva kao 18 cifara.
      */
     protected function prepareForValidation(): void
     {
@@ -31,6 +34,16 @@ class PoreskiObaveznikRequest extends FormRequest
             $this->merge([
                 'opstina_sifra' => Opstine::sifra($this->input('opstina_sifra')) ?? $this->input('opstina_sifra'),
             ]);
+        }
+
+        if (filled($this->input('tekuci_racun'))) {
+            $this->merge([
+                'tekuci_racun' => TekuciRacun::normalizuj($this->input('tekuci_racun')) ?? $this->input('tekuci_racun'),
+            ]);
+        }
+
+        if (filled($this->input('broj_pasosa'))) {
+            $this->merge(['broj_pasosa' => mb_strtoupper(preg_replace('/\s+/', '', $this->input('broj_pasosa')))]);
         }
     }
 
@@ -53,6 +66,12 @@ class PoreskiObaveznikRequest extends FormRequest
             'jmbg_podnosioca' => ['required', 'digits:13'],
             'zemlja_rezidentstva' => ['required', Rule::in(array_keys(config('drzave')))],
             'pib_punomocnika' => ['nullable', 'regex:/^(\d{9}|\d{13})$/'],
+            'tekuci_racun' => ['bail', 'required', 'digits:18', function (string $atribut, mixed $vrednost, Closure $greska) {
+                if (! TekuciRacun::kontrolniBrojJeIspravan((string) $vrednost)) {
+                    $greska(__('validation.custom.tekuci_racun.kontrolni_broj'));
+                }
+            }],
+            'broj_pasosa' => ['nullable', 'string', 'max:30', 'regex:/^[A-Z0-9]+$/'],
         ];
     }
 

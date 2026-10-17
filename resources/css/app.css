@@ -306,7 +306,7 @@
     color: var(--pecat);
 }
 
-/* Preuzimanje PDF obrasca iz reda tabele (PP OPO): plava ikonica, siva kad je onemogućena. */
+/* Preuzimanje obrasca iz reda tabele (PP OPO, PDF i XML): plava ikonica, siva kad je onemogućena. */
 .preuzmi-pdf {
     --bs-btn-color: var(--pecat);
     --bs-btn-hover-color: var(--pecat);

@@ -3,6 +3,7 @@
 @use('App\Models\PoreskiObaveznik')
 @use('App\Support\Drzave')
 @use('App\Support\Opstine')
+@use('App\Support\TekuciRacun')
 
 @section('naslov', 'Poreski obaveznik')
 
@@ -18,7 +19,8 @@
         @endunless
 
         <p class="text-body-secondary mb-4">
-            Deo 2 obrasca PPDG-3R: podaci o poreskom obavezniku. Sva polja su obavezna osim 2.10.
+            Deo 2 obrasca PPDG-3R: podaci o poreskom obavezniku, uz tekući račun i broj pasoša za PP OPO.
+            Sva polja su obavezna osim 2.10 i broja pasoša.
             Podaci se čuvaju samo u vašem nalogu.
         </p>
 
@@ -135,6 +137,24 @@
                            inputmode="numeric" maxlength="13" pattern="\d{9}|\d{13}" autocomplete="off" @disabled($tip !== 4)
                            class="form-control @error('pib_punomocnika') is-invalid @enderror">
                     <div class="invalid-feedback">@error('pib_punomocnika') {{ $message }} @else JMBG ima 13 cifara, PIB 9. @enderror</div>
+                </div>
+
+                <div class="col-lg-6">
+                    <label for="tekuci_racun" class="form-label">Tekući račun (PP OPO 3.2)</label>
+                    <input id="tekuci_racun" name="tekuci_racun" value="{{ TekuciRacun::prikaz(old('tekuci_racun', $obaveznik->tekuci_racun)) }}"
+                           maxlength="22" pattern="\s*(\d{3}-\d{1,13}-\d{2}|\d{18})\s*" placeholder="npr. 265-0000000360051-46"
+                           required autocomplete="off" aria-describedby="racunPomoc"
+                           class="form-control @error('tekuci_racun') is-invalid @enderror">
+                    <div id="racunPomoc" class="form-text">Račun na koji primate prihod. Skraćen zapis (265-360051-46) se dopunjuje nulama.</div>
+                    <div class="invalid-feedback">@error('tekuci_racun') {{ $message }} @else Upišite račun kao 265-0000000360051-46 ili 18 cifara. @enderror</div>
+                </div>
+                <div class="col-lg-6">
+                    <label for="broj_pasosa" class="form-label">Broj pasoša (PP OPO 2.9) <span class="text-body-secondary">(opciono)</span></label>
+                    <input id="broj_pasosa" name="broj_pasosa" value="{{ old('broj_pasosa', $obaveznik->broj_pasosa) }}"
+                           maxlength="30" pattern="\s*[A-Za-z0-9]+\s*" autocomplete="off" aria-describedby="pasosPomoc"
+                           class="form-control @error('broj_pasosa') is-invalid @enderror">
+                    <div id="pasosPomoc" class="form-text">Upisuje se ako ga imate; nerezidenti ga po pravilu navode.</div>
+                    <div class="invalid-feedback">@error('broj_pasosa') {{ $message }} @else Broj pasoša sme da sadrži samo slova i cifre. @enderror</div>
                 </div>
             </div>
 

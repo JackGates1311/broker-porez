@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * Domenske tabele su u sql/, a ne u migracijama, pa ih testovi prave sami
- * (SQLite verzija sql/*.sql zaključno sa sql/uvoz/izvori_uvoza.sql).
+ * (SQLite verzija sql/*.sql zaključno sa sql/uvoz/izvori_uvoza.sql i sql/porezi/tekuci_racun_pasos.sql).
  */
 trait DomenskeTabele
 {
@@ -37,6 +37,8 @@ trait DomenskeTabele
             $tabela->char('jmbg_podnosioca', 13)->nullable();
             $tabela->string('zemlja_rezidentstva', 3)->nullable();
             $tabela->string('pib_punomocnika', 13)->nullable();
+            $tabela->char('tekuci_racun', 18)->nullable();
+            $tabela->string('broj_pasosa', 30)->nullable();
             $tabela->timestamp('azurirano_at')->nullable();
         });
 
@@ -136,6 +138,7 @@ trait DomenskeTabele
             'email' => "{$ime}@example.com",
             'jmbg_podnosioca' => '0101990710001',
             'zemlja_rezidentstva' => 'RS',
+            'tekuci_racun' => '265000000036005146',
         ]);
 
         return $korisnik;

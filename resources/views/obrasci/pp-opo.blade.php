@@ -28,6 +28,8 @@
     $iznos = fn ($x) => $x === null ? '' : Decimal::format($x);
     // 2.4: šifra opštine (config/opstine.php), 2.8: troslovna oznaka države (SRB).
     $sifraOpstine = $obaveznik->opstina_sifra;
+    // 3.2: tekući račun važi za isplatu na račun (3.1 = 1).
+    $racun = (string) $sifre['nacin_ostvarivanja'] === '1' ? $obaveznik->tekuci_racun : null;
     $prazno = 'border: 0; background: none; padding: 0;';
     $datum = fn ($d) => $d?->format('dmY');
 @endphp
@@ -132,7 +134,7 @@
             <td class="siva levo" style="{{ $s(47.9) }}{{ $v(4.7) }}">2.8 ЗЕМЉА РЕЗИДЕНТСТВА</td>
             <td class="levo" style="{{ $sp(62.7, 1.19) }}">@include('obrasci._kucice_opo', ['vrednost' => Drzave::alfa3($obaveznik->zemlja_rezidentstva), 'grupe' => [3], 'gore' => 0.33])</td>
             <td class="siva levo" style="{{ $s(32) }}">2.9 БРОЈ ПАСОША</td>
-            <td style="{{ $s(31.5) }}"></td>
+            <td class="levo" style="{{ $s(31.5) }}">{{ $obaveznik->broj_pasosa }}</td>
             <td class="siva levo" style="{{ $sp(49.1, 1.8) }}">2.10 ПОРЕСКИ ПУНОМОЋНИК (ЈМБГ/ПИБ)</td>
             <td class="levo" style="{{ $sp(60.2, 3.73) }}">@include('obrasci._kucice_opo', ['vrednost' => $obaveznik->pib_punomocnika, 'grupe' => [13], 'gore' => 0.33])</td>
         </tr>
@@ -146,7 +148,7 @@
             {{-- Na obrascu natpis "1 - 3" izlazi ispod ivice reda; visina sadržaja je zato zadata. --}}
             <td class="svetla" style="{{ $s(35.1) }} vertical-align: top; padding-top: 0.6mm"><div class="preliv" style="height: 5.6mm">@include('obrasci._kucice_opo', ['vrednost' => $sifre['nacin_ostvarivanja'], 'grupe' => [1], 'gore' => 0.59])<div class="natpis">1 - 3</div></div></td>
             <td class="siva" style="{{ $s(27.6) }}">3.2 ТЕКУЋИ РАЧУН</td>
-            <td class="svetla levo" style="{{ $sp(93.3, 5.23) }}">@include('obrasci._kucice_opo', ['vrednost' => null, 'grupe' => [3, 13, 2], 'spoj' => '-', 'gore' => 0.33])</td>
+            <td class="svetla levo" style="{{ $sp(93.3, 5.23) }}">@include('obrasci._kucice_opo', ['vrednost' => $racun, 'grupe' => [3, 13, 2], 'spoj' => '-', 'gore' => 0.33])</td>
             <td class="siva" style="{{ $s(19.3) }}">3.3 ОСТАЛО</td>
             <td class="svetla levo" style="{{ $s(60.2) }}">{{ $red->transakcija->izvor()->naziv() }}</td>
         </tr>

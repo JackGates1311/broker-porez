@@ -80,6 +80,16 @@ final class Decimal
     }
 
     /**
+     * Iznos za XML poreske prijave (xs:decimal sa 2 decimale): 1519.96
+     */
+    public static function zaXml(Number $vrednost): string
+    {
+        [$ceo, $deo] = array_pad(explode('.', (string) $vrednost->round(2)), 2, '');
+
+        return ($ceo === '-0' ? '0' : $ceo).'.'.str_pad($deo, 2, '0');
+    }
+
+    /**
      * Srpski format: 1.519,96
      */
     public static function format(?Number $vrednost, int $decimale = 2): string

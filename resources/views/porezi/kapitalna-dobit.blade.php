@@ -166,7 +166,20 @@
                     </fieldset>
 
                     <button type="submit" class="btn btn-primary btn-sm w-100">Preuzmi PPDG-3R (PDF)</button>
+                    <button type="submit" formaction="{{ route('izvoz.ppdg-3r.xml') }}" class="btn btn-outline-primary btn-sm w-100 mt-2" aria-describedby="ppdg-xml-napomena">Preuzmi PPDG-3R (XML za ePorezi)</button>
                 </form>
+
+                @error('xml')
+                    <div class="alert alert-warning small mt-3 mb-0" role="alert">
+                        @foreach ($errors->get('xml') as $poruka)
+                            <div>{{ $poruka }}</div>
+                        @endforeach
+                    </div>
+                @enderror
+
+                <p id="ppdg-xml-napomena" class="small text-body-secondary mt-2 mb-0">
+                    XML se na portalu ePorezi učitava opcijom „XML unos”. Izveštaj brokera priložite na portalu. Poreska uprava ne objavljuje šemu za PPDG-3R, pa pre podnošenja proverite podatke.
+                </p>
             </section></div>
             </div>
         </aside>

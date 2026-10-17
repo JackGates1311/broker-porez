@@ -6,11 +6,13 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Podaci o poreskom obavezniku, Deo 2 obrazaca PPDG-3R (polja 2.1-2.10) i PP OPO.
+ * Podaci o poreskom obavezniku, Deo 2 obrazaca PPDG-3R (polja 2.1-2.10) i PP OPO,
+ * uz tekući račun (PP OPO 3.2) i broj pasoša (PP OPO 2.9).
  */
 #[Fillable([
     'tip_obaveznika', 'pib', 'ime_prezime', 'prebivaliste', 'opstina_sifra', 'adresa',
     'telefon', 'email', 'jmbg_podnosioca', 'zemlja_rezidentstva', 'pib_punomocnika',
+    'tekuci_racun', 'broj_pasosa',
 ])]
 class PoreskiObaveznik extends Model
 {
@@ -26,10 +28,10 @@ class PoreskiObaveznik extends Model
         4 => 'Nerezidentno fizičko lice koje nema boravište u Republici Srbiji',
     ];
 
-    /** Polja koja svaki obaveznik mora da popuni (2.10 je opciono). */
+    /** Polja koja svaki obaveznik mora da popuni (2.10 i broj pasoša su opcioni). */
     public const OBAVEZNA_POLJA = [
         'tip_obaveznika', 'pib', 'ime_prezime', 'prebivaliste', 'opstina_sifra', 'adresa',
-        'telefon', 'email', 'jmbg_podnosioca', 'zemlja_rezidentstva',
+        'telefon', 'email', 'jmbg_podnosioca', 'zemlja_rezidentstva', 'tekuci_racun',
     ];
 
     protected $table = 'poreski_obaveznik';

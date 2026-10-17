@@ -70,6 +70,8 @@ Route::middleware('auth')->group(function () {
         Route::delete('/transakcije', [UvozController::class, 'obrisiSve'])->name('transakcije.obrisi');
 
         Route::get('/izvoz/ppdg-3r', [IzvozController::class, 'ppdg3r'])->name('izvoz.ppdg-3r');
+        Route::get('/izvoz/ppdg-3r/xml', [IzvozController::class, 'ppdg3rXml'])->name('izvoz.ppdg-3r.xml');
         Route::get('/izvoz/pp-opo/{transakcija}', [IzvozController::class, 'ppOpo'])->whereNumber('transakcija')->name('izvoz.pp-opo');
+        Route::get('/izvoz/pp-opo/{transakcija}/xml', [IzvozController::class, 'ppOpoXml'])->whereNumber('transakcija')->name('izvoz.pp-opo.xml');
     });
 });

@@ -65,6 +65,7 @@ return [
 
     'attributes' => [
         'adresa' => 'adresa',
+        'broj_pasosa' => 'broj pasoša',
         'akcije' => 'akcije',
         'akcije.*.tip' => 'tip transakcije',
         'akcije.*.vrednost' => 'vrednost akcije',
@@ -98,6 +99,7 @@ return [
         'separator_hiljada' => 'separator hiljada',
         'sifra_vrste_prihoda' => 'šifra vrste prihoda',
         'telefon' => 'telefon',
+        'tekuci_racun' => 'tekući račun',
         'tip_obaveznika' => 'tip obaveznika',
         'token' => 'link',
         'vremenska_zona' => 'vremenska zona',
@@ -114,6 +116,13 @@ return [
         ],
         'telefon' => [
             'regex' => 'Broj telefona sme da sadrži samo cifre, razmake i znakove + - / ( ) i mora imati od 6 do 15 cifara.',
+        ],
+        'tekuci_racun' => [
+            'digits' => 'Tekući račun upišite kao 265-0000000360051-46, 265-360051-46 ili 18 cifara.',
+            'kontrolni_broj' => 'Kontrolni broj tekućeg računa (poslednje dve cifre) nije ispravan. Proverite broj.',
+        ],
+        'broj_pasosa' => [
+            'regex' => 'Broj pasoša sme da sadrži samo slova i cifre.',
         ],
     ],
 

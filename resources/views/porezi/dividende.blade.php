@@ -63,7 +63,15 @@
 
             <div class="col-lg-4"><section class="border bg-white p-3 h-100" aria-labelledby="ppopo-naslov">
                 <h2 class="h6 mb-1" id="ppopo-naslov">Obrazac PP OPO</h2>
-                <p class="small text-body-secondary">Podnosi se za svaku isplatu, u roku od 30 dana. Preuzmite ga ikonicom u koloni „PP OPO” u redu dividende.</p>
+                <p class="small text-body-secondary">Podnosi se za svaku isplatu, u roku od 30 dana. Preuzmite ga ikonicom u koloni „PP OPO” u redu dividende: PDF za šalter ili XML koji se na portalu ePorezi učitava opcijom „XML unos”.</p>
+
+                @error('xml')
+                    <div class="alert alert-warning small" role="alert">
+                        @foreach ($errors->get('xml') as $poruka)
+                            <div>{{ $poruka }}</div>
+                        @endforeach
+                    </div>
+                @enderror
 
                 @unless ($obaveznikPopunjen)
                     <p class="small text-warning-emphasis">Deo 2 će ostati prazan dok ne popunite <a href="{{ route('poreski-obaveznik') }}">podatke o poreskom obavezniku</a>.</p>
