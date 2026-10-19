@@ -15,7 +15,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2' # Prilagodi verziji PHP-a na serveru
+          php-version: '8.4'
           extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql, zip
           tools: composer
 
@@ -57,7 +57,7 @@ jobs:
           password: ${{ secrets.MAIL_PASSWORD }}
           subject: "✅ [SUCCESS] Deploy uspešno završen - brokerporez.net"
           body: "Automatski deployment na main grani je uspešno izvršen na serveru. Aplikacija je osvežena i spremna."
-          to: "tvoj.email@domain.com" # Gde želiš da primiš obaveštenje
+          to: "makimitrovic07@gmail.com" # Gde želiš da primiš obaveštenje
           from: "BrokerPorez CI/CD <no-reply@brokerporez.net>"
 
       - name: Send Failure Email via Brevo SMTP
@@ -70,5 +70,5 @@ jobs:
           password: ${{ secrets.MAIL_PASSWORD }}
           subject: "❌ [FAILURE] Greška pri deploy-u - brokerporez.net"
           body: "Pažnja! Došlo je do greške tokom automatskog deployment-a na main grani. Proverite GitHub Actions logove."
-          to: "tvoj.email@domain.com"
+          to: "makimitrovic07@gmail.com"
           from: "BrokerPorez CI/CD <no-reply@brokerporez.net>"
