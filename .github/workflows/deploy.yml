@@ -31,38 +31,46 @@ jobs:
           script: |
             cd /var/www/broker_porez
             
-            echo "--- Povlačenje najnovijeg koda sa Git-a ---"
-            git pull origin main
+            echo "--- Poništavanje lokalnih izmena i povlačenje najnovijeg koda ---"
+            git fetch origin main
+            git reset --hard origin/main
             
-            echo "--- Instalacija zavisnosti ---"
+            echo "--- Instalacija Composer zavisnosti ---"
             composer install --no-dev --optimize-autoloader --no-interaction
+            
+            echo "--- Instalacija i build NPM asseta (Vite) ---"
+            npm ci || npm install
+            npm run build
             
             echo "--- Pokretanje migracija baze ---"
             php artisan migrate --force
             
-            echo "--- Laravel optimizacija i keširanje ---"
+            echo "--- Čišćenje i optimizacija Laravel keša ---"
+            php artisan config:clear
+            php artisan route:clear
+            php artisan view:clear
+            php artisan cache:clear
+            
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
-            
-            echo "--- Napomena: .env i .sql skripte su ostavljene netaknute (ručno podešene na serveru) ---"
 
       - name: Send Success Email via Brevo SMTP
         if: success()
-        uses: dawidd6/action-send-mail@v3
+        uses: dawidd6/action-send-mail@v3.12.0
         with:
           server_address: smtp-relay.brevo.com
           server_port: 587
-          username: ${{ secrets.MAIL_USERNAME }} # Možeš hardkodovati Brevo user ili staviti u Secrets
+          username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
           subject: "✅ [SUCCESS] Deploy uspešno završen - brokerporez.net"
-          body: "Automatski deployment na main grani je uspešno izvršen na serveru. Aplikacija je osvežena i spremna."
-          to: "makimitrovic07@gmail.com" # Gde želiš da primiš obaveštenje
+          body: "Automatski deployment na main grani je uspešno izvršen na serveru. Vite asseti su kompajlirani i aplikacija je osvežena."
+          to: "makimitrovic07@gmail.com"
           from: "BrokerPorez CI/CD <no-reply@brokerporez.net>"
 
       - name: Send Failure Email via Brevo SMTP
         if: failure()
-        uses: dawidd6/action-send-mail@v3
+        uses: dawidd6/action-send-mail@v3.12.0
         with:
           server_address: smtp-relay.brevo.com
           server_port: 587
