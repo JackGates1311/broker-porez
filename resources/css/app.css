@@ -47,6 +47,20 @@
     --bs-btn-active-bg: var(--pecat);
 }
 
+/* "Prijavi se preko Google-a": bela pozadina i siva ivica, kako Google traži za svoje dugme. */
+.google-dugme {
+    --bs-btn-bg: #fff;
+    --bs-btn-color: #1f1f1f;
+    --bs-btn-border-color: #747775;
+    --bs-btn-hover-bg: #f2f2f2;
+    --bs-btn-hover-color: #1f1f1f;
+    --bs-btn-hover-border-color: #747775;
+    --bs-btn-active-bg: #e8e8e8;
+    --bs-btn-active-color: #1f1f1f;
+    --bs-btn-active-border-color: #747775;
+    font-weight: 500;
+}
+
 .navbar {
     background: #fff;
 }

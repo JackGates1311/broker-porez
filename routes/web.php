@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\GooglePrijavaController;
 use App\Http\Controllers\Auth\PrijavaController;
 use App\Http\Controllers\Auth\RegistracijaController;
 use App\Http\Controllers\Auth\ResetLozinkeController;
@@ -22,6 +23,11 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/prijava', [PrijavaController::class, 'create'])->name('prijava');
     Route::post('/prijava', [PrijavaController::class, 'store']);
+
+    Route::middleware('throttle:10,1')->group(function () {
+        Route::get('/prijava/google', [GooglePrijavaController::class, 'preusmeri'])->name('prijava.google');
+        Route::get('/auth/google/callback', [GooglePrijavaController::class, 'povratak'])->name('prijava.google.povratak');
+    });
 
     Route::get('/zaboravljena-lozinka', [ZaboravljenaLozinkaController::class, 'create'])->name('lozinka.zaboravljena');
     Route::post('/zaboravljena-lozinka', [ZaboravljenaLozinkaController::class, 'store']);
