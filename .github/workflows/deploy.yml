@@ -55,6 +55,8 @@ jobs:
             php artisan route:cache
             php artisan view:cache
 
+            sudo systemctl reload php8.4-fpm
+
       - name: Send Success Email via Brevo SMTP
         if: success()
         uses: dawidd6/action-send-mail@v3.12.0
