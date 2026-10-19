@@ -9,8 +9,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['korisnicko_ime', 'email', 'lozinka_hash'])]
-#[Hidden(['lozinka_hash', 'remember_token'])]
+#[Fillable(['korisnicko_ime', 'email', 'lozinka_hash', 'google_id'])]
+#[Hidden(['lozinka_hash', 'remember_token', 'google_id'])]
 class Korisnik extends Authenticatable
 {
     use Notifiable;

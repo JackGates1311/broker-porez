@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * Domenske tabele su u sql/, a ne u migracijama, pa ih testovi prave sami
- * (SQLite verzija sql/*.sql zaključno sa sql/uvoz/izvori_uvoza.sql i sql/porezi/tekuci_racun_pasos.sql).
+ * (SQLite verzija sql/*.sql zaključno sa sql/uvoz/izvori_uvoza.sql i sql/porezi/tekuci_racun_pasos.sql i sql/auth/google_oauth.sql).
  */
 trait DomenskeTabele
 {
@@ -21,6 +21,7 @@ trait DomenskeTabele
             $tabela->string('lozinka_hash');
             $tabela->timestamp('email_verifikovan_at')->nullable();
             $tabela->string('remember_token', 100)->nullable();
+            $tabela->string('google_id')->nullable()->unique();
             $tabela->timestamp('kreirano_at')->useCurrent();
         });
 

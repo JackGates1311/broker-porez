@@ -45,6 +45,12 @@
                 <button type="submit" class="btn btn-primary w-100">Prijavi se</button>
             </form>
 
+            <div class="d-flex align-items-center gap-2 my-3 text-body-secondary small" aria-hidden="true">
+                <hr class="flex-grow-1 my-0"><span>ili</span><hr class="flex-grow-1 my-0">
+            </div>
+
+            <x-google-dugme />
+
             <p class="text-center text-body-secondary mt-4 mb-0">
                 Nemate nalog? <a href="{{ route('registracija') }}">Registrujte se</a>
             </p>
