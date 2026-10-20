@@ -7,13 +7,21 @@
 
         <title>@hasSection('naslov')@yield('naslov') – @endif{{ config('app.name') }}</title>
 
+        <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+        <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/logo/favicon-32.png') }}">
+        <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
+        <meta name="theme-color" content="#0b2746">
+
         @fonts
         @vite(['resources/css/app.css', 'resources/js/app.ts'])
     </head>
     <body class="d-flex flex-column min-vh-100">
         <nav class="navbar navbar-expand-md bg-body border-bottom">
             <div class="@yield('kontejner', 'container')">
-                <a class="navbar-brand fw-semibold" href="{{ url('/') }}">{{ config('app.name') }}</a>
+                <a class="navbar-brand marka" href="{{ url('/') }}" aria-label="{{ config('app.name') }}">
+                    <img src="{{ asset('images/logo/znak-64.png') }}" width="32" height="32" alt="">
+                    <span aria-hidden="true"><span class="marka-broker">Broker</span><span class="marka-porez">Porez</span></span>
+                </a>
 
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#glavnaNavigacija"
                         aria-controls="glavnaNavigacija" aria-expanded="false" aria-label="Prikaži navigaciju">

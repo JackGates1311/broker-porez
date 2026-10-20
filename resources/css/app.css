@@ -65,6 +65,27 @@
     background: #fff;
 }
 
+/* Logo u headeru: znak (štit sa „BP”) i dvobojni naziv, boje uzete iz znaka. */
+.marka {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.marka img {
+    flex-shrink: 0;
+}
+
+.marka-broker {
+    color: #55717f;
+}
+
+.marka-porez {
+    color: #0b2746;
+}
+
 /* Okruglo dugme za odjavu u navigaciji (ikonica izlaza); crveni se na hover. */
 .dugme-odjava {
     display: inline-flex;
