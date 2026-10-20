@@ -51,6 +51,11 @@
 
             <x-google-dugme />
 
+            <p class="small text-body-secondary text-center mt-2 mb-0">
+                Nastavkom potvrđujete da ste upoznati sa <a href="{{ route('pravno.politika') }}">Politikom privatnosti</a>
+                i <a href="{{ route('pravno.uslovi') }}">Uslovima korišćenja</a>.
+            </p>
+
             <p class="text-center text-body-secondary mt-4 mb-0">
                 Nemate nalog? <a href="{{ route('registracija') }}">Registrujte se</a>
             </p>

@@ -74,6 +74,26 @@ class IzvozXmlTest extends TestCase
             ->assertSee('Preuzmi PPDG-3R (XML za ePorezi)');
     }
 
+    public function test_xml_se_ne_pravi_bez_jmbg_a_a_pdf_se_preuzima(): void
+    {
+        $this->transakcija('KUPOVINA', '2026-01-05 14:00:00', '1', '100', '100');
+        $this->transakcija('PRODAJA', '2026-03-16 14:00:00', '1', '150', '105');
+        app(FifoService::class)->preracunaj($this->korisnik);
+        $this->korisnik->poreskiObaveznik->update(['pib' => null, 'jmbg_podnosioca' => null]);
+
+        $this->actingAs($this->korisnik->fresh())
+            ->get(route('izvoz.ppdg-3r.xml', ['godina' => 2026, 'polugodiste' => 1]))
+            ->assertRedirect(route('kapitalna-dobit', ['period' => '2026-H1']))
+            ->assertSessionHasErrors('xml');
+
+        $this->assertStringContainsString('2.2 poreski identifikacioni broj (JMBG/EBS/PIB), 2.8 JMBG podnosioca prijave', implode(' ', session('errors')->get('xml')));
+
+        $this->actingAs($this->korisnik->fresh())
+            ->get(route('izvoz.ppdg-3r', ['godina' => 2026, 'polugodiste' => 1]))
+            ->assertOk()
+            ->assertHeader('Content-Type', 'application/pdf');
+    }
+
     public function test_ppdg3r_xml_bez_prodaja_u_polugodistu_se_odbija(): void
     {
         $this->actingAs($this->korisnik)

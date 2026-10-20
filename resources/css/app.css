@@ -87,28 +87,386 @@
 }
 
 /* Okruglo dugme za odjavu u navigaciji (ikonica izlaza); crveni se na hover. */
-.dugme-odjava {
+/* Korisnički meni: ikonica i ime otvaraju nalog, pravne strane i odjavu. */
+.dugme-korisnik {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 0;
+    border-radius: 999px;
+    padding: 0.2rem 0.6rem 0.2rem 0.2rem;
+    background: transparent;
+    color: var(--mastilo);
+    cursor: pointer;
+}
+
+.dugme-korisnik .avatar {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     width: 2rem;
     height: 2rem;
-    border: 0;
     border-radius: 50%;
-    padding: 0;
     background: var(--pecat-svetao);
     color: var(--pecat);
-    cursor: pointer;
 }
 
-.dugme-odjava:hover {
-    background: rgba(var(--bs-danger-rgb), 0.1);
+.dugme-korisnik:hover,
+.dugme-korisnik[aria-expanded="true"] {
+    background: var(--pecat-svetao);
+}
+
+.dugme-korisnik:focus-visible {
+    outline: 2px solid var(--pecat);
+    outline-offset: 2px;
+}
+
+.korisnicki-meni .dropdown-menu {
+    --bs-dropdown-min-width: 15rem;
+    --bs-dropdown-border-color: var(--linija);
+    --bs-dropdown-link-active-bg: var(--pecat);
+    max-width: 20rem;
+}
+
+.korisnicki-meni .stavka-odjava {
     color: var(--gubitak);
 }
 
-.dugme-odjava:focus-visible {
-    outline: 2px solid var(--pecat);
-    outline-offset: 2px;
+/* ---------- Podnožje i pravne strane ---------- */
+
+.podnozje {
+    font-size: 0.875rem;
+    color: var(--tiho);
+    background: var(--bs-body-bg);
+}
+
+.podnozje a {
+    color: var(--tiho);
+}
+
+.podnozje a:hover {
+    color: var(--pecat);
+}
+
+.pravni-tekst {
+    max-width: 72ch;
+    line-height: 1.65;
+}
+
+.pravni-tekst h2 {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-top: 2.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.pravni-tekst .vazi-od {
+    color: var(--tiho);
+}
+
+/* Uslovi i politika u modalu na koraku Poreski obaveznik. */
+.pravni-modal .modal-content {
+    border-color: var(--linija);
+    border-radius: var(--bs-border-radius);
+}
+
+.pravni-modal .modal-header {
+    align-items: flex-start;
+    padding: 1.25rem 1.5rem 1rem;
+}
+
+.pravni-modal .modal-header .btn-close {
+    flex-shrink: 0;
+    margin: 0 0 0 auto;
+    padding: 0.5rem;
+}
+
+.pravni-modal .modal-body {
+    padding: 0.5rem 1.5rem 1.5rem;
+}
+
+/* modal-lg je već uzak (800px), pa tekst ide do unutrašnje ivice, simetrično sa zaglavljem. */
+.pravni-modal .pravni-tekst {
+    max-width: none;
+}
+
+.pravni-modal .pravni-tekst > :first-child {
+    margin-top: 1rem;
+}
+
+.pravni-modal .pravni-tekst h2 {
+    font-size: 1.05rem;
+    margin-top: 1.75rem;
+}
+
+.pravni-modal .modal-footer {
+    padding: 0.75rem 1.5rem;
+}
+
+.napomena-alat {
+    border-left: 3px solid var(--pecat);
+    background: var(--pecat-svetao);
+    padding: 0.75rem 1rem;
+}
+
+/* ---------- Javna početna ---------- */
+
+.uvod {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: 3rem;
+    align-items: center;
+    padding-bottom: 3rem;
+}
+
+.uvod-naslov {
+    font-size: clamp(2rem, 4.2vw, 3.1rem);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+    max-width: 18ch;
+    margin-bottom: 1.25rem;
+}
+
+.uvod-podnaslov {
+    font-size: 1.125rem;
+    line-height: 1.6;
+    color: var(--tiho);
+    max-width: 58ch;
+    margin: 0;
+}
+
+.uvod-poverenje {
+    font-size: 0.9rem;
+    color: var(--tiho);
+}
+
+/* Isečak obrasca: jedini "glasan" element strane, u istom rečniku kao knjiga. */
+.uvod-obrazac {
+    margin: 0;
+    background: #fff;
+    border: 1.5px solid var(--mastilo);
+    padding: 1.25rem 1.5rem 1.5rem;
+    box-shadow: 6px 6px 0 var(--pecat-svetao);
+}
+
+.obrazac-zaglavlje {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    font-size: 0.85rem;
+    color: var(--tiho);
+    border-bottom: 1px solid var(--mastilo);
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.obrazac-redovi {
+    margin: 0;
+}
+
+.obrazac-redovi > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--linija);
+}
+
+.obrazac-redovi dt {
+    font-weight: 400;
+    color: var(--tiho);
+}
+
+.obrazac-redovi dd {
+    margin: 0;
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.obrazac-redovi .obrazac-zbir dt,
+.obrazac-redovi .obrazac-zbir dd {
+    color: var(--mastilo);
+    font-weight: 600;
+}
+
+.uvod-obrazac .polje-obrasca {
+    border-color: var(--pecat);
+}
+
+.javna-sekcija {
+    border-top: 1px solid var(--linija);
+    padding: 3rem 0;
+}
+
+.javni-naslov {
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin-bottom: 1.5rem;
+}
+
+.koraci-javno {
+    list-style: none;
+    counter-reset: korak;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 2rem;
+    padding: 0;
+    margin: 0;
+}
+
+.koraci-javno li {
+    counter-increment: korak;
+    border-top: 2px solid var(--mastilo);
+    padding-top: 0.75rem;
+}
+
+.koraci-javno li::before {
+    content: 'Korak ' counter(korak);
+    display: block;
+    font-size: 0.85rem;
+    color: var(--pecat);
+    margin-bottom: 0.35rem;
+}
+
+.koraci-javno h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+
+.koraci-javno p {
+    color: var(--tiho);
+    margin: 0;
+}
+
+.javna-podaci {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+    gap: 3rem;
+}
+
+.lista-garancija {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.lista-garancija li {
+    padding: 0.85rem 0 0.85rem 1.75rem;
+    border-bottom: 1px solid var(--linija);
+    position: relative;
+}
+
+.lista-garancija li:first-child {
+    padding-top: 0;
+}
+
+.lista-garancija li::before {
+    content: '';
+    position: absolute;
+    left: 0.15rem;
+    top: 1.2rem;
+    width: 0.8rem;
+    height: 0.45rem;
+    border-left: 2px solid var(--dobit);
+    border-bottom: 2px solid var(--dobit);
+    transform: rotate(-45deg);
+}
+
+.lista-garancija li:first-child::before {
+    top: 0.35rem;
+}
+
+.lista-brokera {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-width: 52rem;
+}
+
+.lista-brokera li {
+    display: grid;
+    grid-template-columns: minmax(0, 16rem) minmax(0, 1fr);
+    gap: 1rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--linija);
+}
+
+.lista-brokera span {
+    color: var(--tiho);
+}
+
+.pitanja {
+    max-width: 52rem;
+}
+
+.pitanja details {
+    border-bottom: 1px solid var(--linija);
+    padding: 0.85rem 0;
+}
+
+.pitanja summary {
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.pitanja details p {
+    color: var(--tiho);
+    margin: 0.6rem 0 0;
+    max-width: 70ch;
+}
+
+.javni-kraj {
+    max-width: 52rem;
+}
+
+@media (max-width: 991.98px) {
+    .uvod,
+    .javna-podaci {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 2rem;
+    }
+
+    .koraci-javno {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 575.98px) {
+    .koraci-javno,
+    .lista-brokera li {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .lista-brokera li {
+        gap: 0.15rem;
+    }
+
+    .obrazac-redovi > div {
+        flex-direction: column;
+        gap: 0.1rem;
+    }
+
+    .obrazac-redovi dd {
+        text-align: left;
+    }
+}
+
+.nalog-strana {
+    max-width: 720px;
+}
+
+.opasna-zona {
+    border: 1px solid rgba(var(--bs-danger-rgb), 0.45);
+    background: #fff;
+    padding: 1.25rem 1.5rem;
+}
+
+.prihvatanje-uslova {
+    border-top: 1px solid var(--linija);
+    padding-top: 1rem;
 }
 
 .auth-kartica {

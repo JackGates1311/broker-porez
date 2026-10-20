@@ -63,13 +63,44 @@ class GooglePrijavaTest extends TestCase
     {
         $this->googleVraca('Pera.Peric@gmail.com');
 
-        $this->get(route('prijava.google.povratak'))->assertRedirect(route('pocetna', absolute: false));
+        $this->get(route('prijava.google.povratak'))->assertRedirect(route('nalog.korisnicko-ime'));
 
         $korisnik = Korisnik::where('email', 'pera.peric@gmail.com')->firstOrFail();
         $this->assertAuthenticatedAs($korisnik);
         $this->assertSame('g-123', $korisnik->google_id);
         $this->assertSame('pera_peric', $korisnik->korisnicko_ime);
         $this->assertTrue($korisnik->jeVerifikovan());
+    }
+
+    public function test_nov_korisnik_zadrzava_ili_menja_predlozeno_ime(): void
+    {
+        $this->googleVraca('pera.peric@gmail.com');
+        $this->get(route('prijava.google.povratak'));
+
+        $this->get(route('nalog.korisnicko-ime'))
+            ->assertOk()
+            ->assertSee('Izaberite korisničko ime')
+            ->assertSee('value="pera_peric"', escape: false);
+
+        Korisnik::create(['korisnicko_ime' => 'zauzeto', 'email' => 'drugi@example.com', 'lozinka_hash' => 'lozinka123']);
+        $this->put(route('nalog.korisnicko-ime'), ['korisnicko_ime' => 'zauzeto'])
+            ->assertSessionHasErrors('korisnicko_ime')
+            ->assertSessionHas('predlozi_korisnickog_imena');
+
+        $this->put(route('nalog.korisnicko-ime'), ['korisnicko_ime' => 'Perica'])
+            ->assertRedirect(route('pocetna', absolute: false));
+        $this->assertSame('Perica', Korisnik::where('email', 'pera.peric@gmail.com')->value('korisnicko_ime'));
+
+        // Korak se nudi samo jednom; posle toga ime se menja u Moj nalog.
+        $this->get(route('nalog.korisnicko-ime'))->assertRedirect(route('nalog'));
+    }
+
+    public function test_postojeci_nalog_ne_dobija_korak_izbora_imena(): void
+    {
+        $korisnik = $this->spremanKorisnik();
+        $this->googleVraca($korisnik->email);
+
+        $this->get(route('prijava.google.povratak'))->assertRedirect(route('pocetna', absolute: false));
     }
 
     public function test_zauzeto_korisnicko_ime_se_menja_automatski(): void

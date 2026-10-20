@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Pravno;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -35,6 +36,7 @@ class Korisnik extends Authenticatable
     {
         return [
             'email_verifikovan_at' => 'datetime',
+            'uslovi_prihvaceni_at' => 'datetime',
             'lozinka_hash' => 'hashed',
         ];
     }
@@ -90,5 +92,22 @@ class Korisnik extends Authenticatable
     public function jeVerifikovan(): bool
     {
         return $this->email_verifikovan_at !== null;
+    }
+
+    /**
+     * Da li važi verzija Uslova korišćenja i Politike privatnosti koju je korisnik prihvatio
+     * (ranija verzija važi do datuma stupanja na snagu nove).
+     */
+    public function prihvatioUslove(): bool
+    {
+        return Pravno::vaziPrihvacena($this->uslovi_verzija);
+    }
+
+    public function prihvatiUslove(): void
+    {
+        $this->forceFill([
+            'uslovi_prihvaceni_at' => now(),
+            'uslovi_verzija' => Pravno::verzija(),
+        ])->save();
     }
 }

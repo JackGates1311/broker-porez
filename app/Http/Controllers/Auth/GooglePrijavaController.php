@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\NalogController;
 use App\Services\GooglePrijavaService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -44,6 +45,13 @@ class GooglePrijavaController extends Controller
 
         Auth::login($korisnik);
         $request->session()->regenerate();
+
+        // Novom nalogu je ime dodeljeno iz mejla; korisnik ga jednim korakom zadržava ili menja.
+        if ($korisnik->wasRecentlyCreated) {
+            $request->session()->put(NalogController::IZBOR_IMENA, true);
+
+            return redirect()->route('nalog.korisnicko-ime');
+        }
 
         return redirect()->intended(route('pocetna', absolute: false));
     }

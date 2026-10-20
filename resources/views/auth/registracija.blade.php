@@ -11,21 +11,7 @@
                 @csrf
 
                 <div class="mb-3">
-                    <label for="korisnicko_ime" class="form-label">Korisničko ime</label>
-                    <input type="text" id="korisnicko_ime" name="korisnicko_ime" value="{{ old('korisnicko_ime') }}"
-                           class="form-control @error('korisnicko_ime') is-invalid @enderror"
-                           maxlength="50" autocomplete="username" required autofocus>
-                    <div class="invalid-feedback">
-                        @error('korisnicko_ime') {{ $message }} @else Dozvoljena su slova, brojevi, crtice i donje crte. @enderror
-                    </div>
-                    @if (session('predlozi_korisnickog_imena'))
-                        <div class="form-text d-flex flex-wrap align-items-center gap-1" data-predlozi-za="korisnicko_ime">
-                            <span>Slobodna imena:</span>
-                            @foreach (session('predlozi_korisnickog_imena') as $predlog)
-                                <button type="button" class="btn btn-sm btn-outline-primary py-0" data-predlog="{{ $predlog }}">{{ $predlog }}</button>
-                            @endforeach
-                        </div>
-                    @endif
+                    @include('auth._korisnicko-ime', ['autofocus' => true])
                 </div>
 
                 <div class="mb-3">
@@ -60,6 +46,11 @@
                 </div>
 
                 <button type="submit" class="btn btn-primary w-100">Registruj se</button>
+
+                <p class="small text-body-secondary text-center mt-3 mb-0">
+                    Registracijom potvrđujete da ste upoznati sa <a href="{{ route('pravno.politika') }}">Politikom privatnosti</a>
+                    i <a href="{{ route('pravno.uslovi') }}">Uslovima korišćenja</a>.
+                </p>
             </form>
 
             <p class="text-center text-body-secondary mt-4 mb-0">

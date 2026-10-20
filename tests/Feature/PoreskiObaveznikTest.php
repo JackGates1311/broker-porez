@@ -31,23 +31,25 @@ class PoreskiObaveznikTest extends TestCase
             $tabela->timestamp('email_verifikovan_at')->nullable();
             $tabela->string('remember_token', 100)->nullable();
             $tabela->timestamp('kreirano_at')->useCurrent();
+            $tabela->timestamp('uslovi_prihvaceni_at')->nullable();
+            $tabela->string('uslovi_verzija', 20)->nullable();
         });
 
         Schema::create('poreski_obaveznik', function (Blueprint $tabela) {
             $tabela->unsignedInteger('korisnik_id')->primary();
             $tabela->tinyInteger('tip_obaveznika')->nullable();
-            $tabela->string('pib', 13)->nullable();
+            $tabela->text('pib')->nullable();
             $tabela->string('ime_prezime', 150)->nullable();
             $tabela->string('adresa')->nullable();
             $tabela->string('prebivaliste')->nullable();
             $tabela->char('opstina_sifra', 3)->nullable();
             $tabela->string('telefon', 30)->nullable();
             $tabela->string('email', 100)->nullable();
-            $tabela->char('jmbg_podnosioca', 13)->nullable();
+            $tabela->text('jmbg_podnosioca')->nullable();
             $tabela->string('zemlja_rezidentstva', 3)->nullable();
             $tabela->string('pib_punomocnika', 13)->nullable();
-            $tabela->char('tekuci_racun', 18)->nullable();
-            $tabela->string('broj_pasosa', 30)->nullable();
+            $tabela->text('tekuci_racun')->nullable();
+            $tabela->text('broj_pasosa')->nullable();
             $tabela->timestamp('azurirano_at')->nullable();
             $tabela->foreign('korisnik_id')->references('id')->on('korisnici')->cascadeOnDelete();
         });
@@ -83,6 +85,7 @@ class PoreskiObaveznikTest extends TestCase
             'zemlja_rezidentstva' => 'DE',
             'pib_punomocnika' => '123456789',
             'tekuci_racun' => '265-0000000360051-46',
+            'prihvatam_uslove' => '1',
             ...$izmene,
         ];
     }
@@ -107,10 +110,9 @@ class PoreskiObaveznikTest extends TestCase
         $this->actingAs($this->korisnik)
             ->put(route('poreski-obaveznik'), [])
             ->assertSessionHasErrors([
-                'tip_obaveznika', 'pib', 'ime_prezime', 'prebivaliste', 'opstina_sifra', 'adresa', 'telefon', 'email',
-                'jmbg_podnosioca', 'zemlja_rezidentstva', 'tekuci_racun',
+                'tip_obaveznika', 'ime_prezime', 'opstina_sifra', 'email', 'zemlja_rezidentstva',
             ])
-            ->assertSessionDoesntHaveErrors(['pib_punomocnika', 'broj_pasosa']);
+            ->assertSessionDoesntHaveErrors(['pib', 'prebivaliste', 'adresa', 'telefon', 'jmbg_podnosioca', 'tekuci_racun', 'pib_punomocnika', 'broj_pasosa']);
 
         $this->assertNull($this->korisnik->poreskiObaveznik()->first());
     }
@@ -223,6 +225,80 @@ class PoreskiObaveznikTest extends TestCase
             ->assertRedirect(route('poreski-obaveznik'));
     }
 
+    public function test_osetljiva_polja_su_opciona_uz_upozorenje(): void
+    {
+        $this->actingAs($this->korisnik)
+            ->put(route('poreski-obaveznik'), $this->ispravniPodaci(['pib' => '', 'prebivaliste' => '', 'adresa' => '', 'telefon' => '', 'jmbg_podnosioca' => '', 'tekuci_racun' => '']))
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('pocetna'));
+
+        $obaveznik = $this->korisnik->poreskiObaveznik()->firstOrFail();
+        $this->assertNull($obaveznik->pib);
+        $this->assertNull($obaveznik->tekuci_racun);
+        $this->assertNull($obaveznik->telefon);
+        $this->assertNull($obaveznik->adresa);
+        $this->assertTrue($obaveznik->jePopunjen());
+        $this->assertSame(['2.2 poreski identifikacioni broj (JMBG/EBS/PIB)', '2.8 JMBG podnosioca prijave'], $obaveznik->nedostajeZaXml());
+
+        $this->actingAs($this->korisnik->fresh())->get('/proba-obaveznik')->assertOk();
+        $this->actingAs($this->korisnik->fresh())
+            ->get(route('poreski-obaveznik'))
+            ->assertSee('XML za „XML unos” na portalu ePorezi se ne pravi');
+    }
+
+    public function test_uslovi_se_prihvataju_pri_prvom_unosu(): void
+    {
+        $this->actingAs($this->korisnik)
+            ->get(route('poreski-obaveznik'))
+            ->assertSee('name="prihvatam_uslove"', escape: false)
+            ->assertSee(route('pravno.politika'), escape: false)
+            ->assertSee('data-bs-target="#modalUslovi"', escape: false)
+            ->assertSee('id="modalPolitika"', escape: false)
+            ->assertSee('Limited Use');
+
+        $this->actingAs($this->korisnik)
+            ->put(route('poreski-obaveznik'), $this->ispravniPodaci(['prihvatam_uslove' => null]))
+            ->assertSessionHasErrors('prihvatam_uslove');
+        $this->assertNull($this->korisnik->poreskiObaveznik()->first());
+
+        $this->actingAs($this->korisnik)
+            ->put(route('poreski-obaveznik'), $this->ispravniPodaci())
+            ->assertSessionHasNoErrors();
+
+        $korisnik = $this->korisnik->fresh();
+        $this->assertSame(config('pravno.verzija'), $korisnik->uslovi_verzija);
+        $this->assertNotNull($korisnik->uslovi_prihvaceni_at);
+
+        // Prihvaćeni uslovi se ne traže ponovo pri izmeni podataka.
+        $this->actingAs($korisnik)
+            ->get(route('poreski-obaveznik'))
+            ->assertDontSee('name="prihvatam_uslove"', escape: false)
+            ->assertDontSee('id="modalUslovi"', escape: false);
+        $this->actingAs($korisnik)
+            ->put(route('poreski-obaveznik'), $this->ispravniPodaci(['prihvatam_uslove' => null]))
+            ->assertSessionHasNoErrors();
+    }
+
+    public function test_nova_verzija_uslova_zakljucava_knjigu_do_prihvatanja(): void
+    {
+        $this->actingAs($this->korisnik)->put(route('poreski-obaveznik'), $this->ispravniPodaci());
+        $korisnik = $this->korisnik->fresh();
+        $this->actingAs($korisnik)->get('/proba-obaveznik')->assertOk();
+
+        config(['pravno.verzija' => '2099-01-01']);
+
+        $this->actingAs($korisnik)->get('/proba-obaveznik')->assertRedirect(route('poreski-obaveznik'));
+        $this->actingAs($korisnik)
+            ->get(route('poreski-obaveznik'))
+            ->assertSee('Uslovi korišćenja i Politika privatnosti su ažurirani')
+            ->assertSee('name="prihvatam_uslove"', escape: false);
+
+        $this->actingAs($korisnik)
+            ->put(route('poreski-obaveznik'), $this->ispravniPodaci())
+            ->assertRedirect(route('pocetna'));
+        $this->actingAs($korisnik->fresh())->get('/proba-obaveznik')->assertOk();
+    }
+
     public function test_nerezident_bez_boravista_cuva_punomocnika(): void
     {
         $this->actingAs($this->korisnik)
@@ -236,7 +312,7 @@ class PoreskiObaveznikTest extends TestCase
 
     public function test_nepotpun_obaveznik_nije_popunjen(): void
     {
-        $this->assertFalse((new PoreskiObaveznik($this->ispravniPodaci(['prebivaliste' => null])))->jePopunjen());
+        $this->assertTrue((new PoreskiObaveznik($this->ispravniPodaci(['prebivaliste' => null, 'adresa' => null])))->jePopunjen());
         $this->assertFalse((new PoreskiObaveznik($this->ispravniPodaci(['opstina_sifra' => null])))->jePopunjen());
         $this->assertFalse((new PoreskiObaveznik($this->ispravniPodaci(['tip_obaveznika' => 3, 'zemlja_rezidentstva' => null])))->jePopunjen());
         $this->assertFalse((new PoreskiObaveznik($this->ispravniPodaci(['tip_obaveznika' => 1, 'zemlja_rezidentstva' => null])))->jePopunjen());

@@ -10,14 +10,40 @@ use BcMath\Number;
 use Carbon\CarbonImmutable;
 use DOMDocument;
 use DOMXPath;
+use Illuminate\Encryption\Encrypter;
 use PHPUnit\Framework\TestCase;
 
 class PpOpoXmlTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Polja obaveznika su šifrovana ('encrypted' cast), a jedinični test nema aplikaciju ni APP_KEY.
+        PoreskiObaveznik::encryptUsing(new Encrypter(Encrypter::generateKey('aes-256-cbc'), 'aes-256-cbc'));
+    }
+
+    protected function tearDown(): void
+    {
+        PoreskiObaveznik::encryptUsing(null);
+
+        parent::tearDown();
+    }
+
     public function test_prolazi_zvanicnu_semu(): void
     {
         $this->assertSame([], PpOpoXml::proveri($this->xml()));
         $this->assertSame([], PpOpoXml::proveri($this->xml(nacin: '3', punomocnik: '123456789', pasos: 'AB123456')));
+    }
+
+    public function test_bez_telefona_i_adrese_elementi_se_izostavljaju_i_prolazi_semu(): void
+    {
+        $xml = $this->xml(telefon: null, adresa: null);
+
+        $this->assertSame([], PpOpoXml::proveri($xml));
+        $this->assertStringNotContainsString('TelefonKontaktOsobe', $xml);
+        $this->assertStringNotContainsString('UlicaBrojPoreskogObveznika', $xml);
+        $this->assertStringContainsString('<ns1:TelefonKontaktOsobe>0601234567</ns1:TelefonKontaktOsobe>', $this->xml());
     }
 
     public function test_iznosi_su_zaokruzeni_i_za_uplatu_je_razlika_zaokruzenih(): void
@@ -64,7 +90,7 @@ class PpOpoXmlTest extends TestCase
         $this->assertStringNotContainsString('{http://pid.purs.gov.rs}', $greske[0]);
     }
 
-    private function xml(string $nacin = '1', ?string $punomocnik = null, string $email = 'pera@example.com', ?string $pasos = null): string
+    private function xml(string $nacin = '1', ?string $punomocnik = null, string $email = 'pera@example.com', ?string $pasos = null, ?string $telefon = '0601234567', ?string $adresa = 'Bulevar oslobođenja 1'): string
     {
         $obracun = (new DividendaKalkulator)->izracunaj(new Number('10'), new Number('3.4'), new Number('6'), new Number('102.1777'));
 
@@ -79,8 +105,8 @@ class PpOpoXmlTest extends TestCase
             'pib' => '0101990710001',
             'ime_prezime' => 'Petar Petrović',
             'opstina_sifra' => '223',
-            'adresa' => 'Bulevar oslobođenja 1',
-            'telefon' => '0601234567',
+            'adresa' => $adresa,
+            'telefon' => $telefon,
             'email' => $email,
             'jmbg_podnosioca' => '0101990710001',
             'zemlja_rezidentstva' => 'RS',

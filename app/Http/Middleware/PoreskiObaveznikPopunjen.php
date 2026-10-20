@@ -10,7 +10,8 @@ use Symfony\Component\HttpFoundation\Response;
 class PoreskiObaveznikPopunjen
 {
     /**
-     * Propušta samo korisnike koji su popunili podatke o poreskom obavezniku.
+     * Propušta samo korisnike koji su popunili podatke o poreskom obavezniku
+     * i prihvatili važeće Uslove korišćenja i Politiku privatnosti.
      *
      * @param  Closure(Request): (Response)  $next
      */
@@ -18,7 +19,7 @@ class PoreskiObaveznikPopunjen
     {
         $korisnik = $request->user();
 
-        if (! $korisnik instanceof Korisnik || ! $korisnik->poreskiObaveznik?->jePopunjen()) {
+        if (! $korisnik instanceof Korisnik || ! $korisnik->poreskiObaveznik?->jePopunjen() || ! $korisnik->prihvatioUslove()) {
             abort_if($request->expectsJson(), 403, 'Podaci o poreskom obavezniku nisu popunjeni.');
 
             return redirect()->route('poreski-obaveznik');

@@ -9,10 +9,26 @@ use BcMath\Number;
 use Carbon\CarbonImmutable;
 use DOMDocument;
 use DOMXPath;
+use Illuminate\Encryption\Encrypter;
 use PHPUnit\Framework\TestCase;
 
 class Ppdg3rXmlTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Polja obaveznika su šifrovana ('encrypted' cast), a jedinični test nema aplikaciju ni APP_KEY.
+        PoreskiObaveznik::encryptUsing(new Encrypter(Encrypter::generateKey('aes-256-cbc'), 'aes-256-cbc'));
+    }
+
+    protected function tearDown(): void
+    {
+        PoreskiObaveznik::encryptUsing(null);
+
+        parent::tearDown();
+    }
+
     public function test_prodaja_sa_vise_lotova_je_jedan_unos_sa_vise_sticanja(): void
     {
         $x = $this->xpath(collect([

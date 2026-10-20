@@ -2,14 +2,16 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Http\Requests\Auth\Concerns\PredlaziSlobodnaImena;
 use App\Services\PredloziKorisnickogImenaService;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Password;
 
 class RegistracijaRequest extends FormRequest
 {
+    use PredlaziSlobodnaImena;
+
     public function authorize(): bool
     {
         return true;
@@ -43,20 +45,5 @@ class RegistracijaRequest extends FormRequest
         $this->merge([
             'email' => mb_strtolower(trim((string) $this->input('email'))),
         ]);
-    }
-
-    /**
-     * Kada je ime ispravno, ali zauzeto, uz grešku se šalju slobodna slična imena.
-     */
-    protected function failedValidation(Validator $validator): void
-    {
-        if (array_keys($validator->failed()['korisnicko_ime'] ?? []) === ['Unique']) {
-            $this->session()->flash(
-                'predlozi_korisnickog_imena',
-                app(PredloziKorisnickogImenaService::class)->predlozi($this->string('korisnicko_ime')->toString()),
-            );
-        }
-
-        parent::failedValidation($validator);
     }
 }

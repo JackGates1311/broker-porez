@@ -12,6 +12,7 @@ return [
     |
     */
 
+    'accepted' => 'Morate prihvatiti :attribute.',
     'alpha' => 'Polje :attribute sme da sadrži samo slova.',
     'alpha_dash' => 'Polje :attribute sme da sadrži samo slova, brojeve, crtice i donje crte.',
     'array' => 'Polje :attribute mora biti lista.',
@@ -91,6 +92,8 @@ return [
         'pib' => 'poreski identifikacioni broj',
         'pib_punomocnika' => 'JMBG/PIB punomoćnika',
         'polugodiste' => 'polugodište',
+        'potvrda_emaila' => 'potvrda email adrese',
+        'prihvatam_uslove' => 'Uslove korišćenja i Politiku privatnosti',
         'prebivaliste' => 'prebivalište/boravište/sedište/opština ostvarivanja prihoda',
         'red_zaglavlja' => 'red zaglavlja',
         'opstina_sifra' => 'opština prebivališta',
@@ -123,6 +126,12 @@ return [
         ],
         'broj_pasosa' => [
             'regex' => 'Broj pasoša sme da sadrži samo slova i cifre.',
+        ],
+        'prihvatam_uslove' => [
+            'accepted' => 'Da biste nastavili, prihvatite Uslove korišćenja i Politiku privatnosti.',
+        ],
+        'potvrda_emaila' => [
+            'in' => 'Upisana adresa se ne poklapa sa email adresom naloga.',
         ],
     ],
 

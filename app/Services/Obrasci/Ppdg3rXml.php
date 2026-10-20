@@ -69,10 +69,18 @@ final class Ppdg3rXml
             ->element('TipPoreskogObveznika', (int) $obaveznik->tip_obaveznika)
             ->element('PoreskiIdentifikacioniBroj', (string) $obaveznik->pib)
             ->cdata('ImeIPrezimePoreskogObveznika', (string) $obaveznik->ime_prezime)
-            ->element('PrebivalisteBoravistePoreskogObveznika', (string) $obaveznik->opstina_sifra)
-            ->cdata('AdresaPoreskogObveznika', (string) $obaveznik->adresa)
-            ->element('TelefonKontaktOsobe', (string) $obaveznik->telefon)
-            ->cdata('ElektronskaPosta', (string) $obaveznik->email)
+            ->element('PrebivalisteBoravistePoreskogObveznika', (string) $obaveznik->opstina_sifra);
+
+        // Adresa i telefon su opcioni u profilu; bez njih se element izostavlja, kao u PP OPO šemi.
+        if (filled($obaveznik->adresa)) {
+            $xml->cdata('AdresaPoreskogObveznika', $obaveznik->adresa);
+        }
+
+        if (filled($obaveznik->telefon)) {
+            $xml->element('TelefonKontaktOsobe', $obaveznik->telefon);
+        }
+
+        $xml->cdata('ElektronskaPosta', (string) $obaveznik->email)
             ->element('JMBGPodnosiocaPrijave', (string) $obaveznik->jmbg_podnosioca)
             ->zatvori();
 

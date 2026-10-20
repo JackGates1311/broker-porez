@@ -42,9 +42,13 @@ class IzvozController extends Controller
         $period = $this->polugodiste($request);
         $prodaje = $this->prodaje($izvestaj, $korisnik, $period);
 
-        $prepreke = $prodaje->isEmpty()
-            ? ["Nema prodaja u periodu „{$period->naziv()}”, pa nema šta da se prijavi."]
-            : Ppdg3rXml::prepreke($prodaje);
+        $obaveznik = $korisnik->poreskiObaveznik ?? new PoreskiObaveznik;
+        $prepreke = [
+            ...$this->nedostajeZaXml($obaveznik),
+            ...($prodaje->isEmpty()
+                ? ["Nema prodaja u periodu „{$period->naziv()}”, pa nema šta da se prijavi."]
+                : Ppdg3rXml::prepreke($prodaje)),
+        ];
 
         if ($prepreke !== []) {
             return redirect()->route('kapitalna-dobit', ['period' => $period->kod])
@@ -54,7 +58,7 @@ class IzvozController extends Controller
         $xml = Ppdg3rXml::napravi(
             $period,
             $prodaje,
-            $korisnik->poreskiObaveznik ?? new PoreskiObaveznik,
+            $obaveznik,
             $this->sifrePpdg3r($request),
             now('Europe/Belgrade'),
         );
@@ -84,11 +88,17 @@ class IzvozController extends Controller
         $red = $izvestaj->red($dividenda);
         $nazad = redirect()->route('dividende', ['period' => $red->vreme->year]);
 
+        $obaveznik = $korisnik->poreskiObaveznik ?? new PoreskiObaveznik;
+
+        if ($prepreke = $this->nedostajeZaXml($obaveznik)) {
+            return $nazad->withErrors(['xml' => ['XML za ePorezi nije napravljen:', ...$prepreke]]);
+        }
+
         if ($red->bez_kursa) {
             return $nazad->withErrors(['xml' => 'XML za ePorezi nije napravljen: dividenda '.($red->simbol ?? '').' od '.$red->vreme->format('d.m.Y').' nema NBS kurs.']);
         }
 
-        $xml = PpOpoXml::napravi($red, $korisnik->poreskiObaveznik ?? new PoreskiObaveznik, $this->sifrePpOpo($request));
+        $xml = PpOpoXml::napravi($red, $obaveznik, $this->sifrePpOpo($request));
 
         if ($greske = PpOpoXml::proveri($xml)) {
             return $nazad->withErrors(['xml' => [
@@ -98,6 +108,20 @@ class IzvozController extends Controller
         }
 
         return $this->xmlPrilog($xml, $this->nazivPpOpo($red, $dividenda).'.xml');
+    }
+
+    /**
+     * JMBG/PIB i JMBG podnosioca su opcioni u profilu, ali bez njih portal ne prima prijavu.
+     *
+     * @return list<string>
+     */
+    private function nedostajeZaXml(PoreskiObaveznik $obaveznik): array
+    {
+        $nedostaje = $obaveznik->nedostajeZaXml();
+
+        return $nedostaje === [] ? [] : [
+            'u delu Poreski obaveznik nije uneto: '.implode(', ', $nedostaje).'. Unesite ih da biste preuzeli XML, ili preuzmite PDF i dopišite ih rukom.',
+        ];
     }
 
     private function polugodiste(Ppdg3rRequest $request): Period

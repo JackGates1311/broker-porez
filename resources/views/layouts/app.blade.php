@@ -31,19 +31,35 @@
                 <div class="collapse navbar-collapse" id="glavnaNavigacija">
                     <ul class="navbar-nav ms-auto align-items-md-center gap-md-3">
                         @auth
-                            <li class="nav-item">
-                                <span class="navbar-text">Dobrodošli <strong>{{ auth()->user()->korisnicko_ime }}</strong></span>
-                            </li>
-                            <li class="nav-item">
-                                <form method="POST" action="{{ route('odjava') }}">
-                                    @csrf
-                                    <button type="submit" class="dugme-odjava" title="Odjava" aria-label="Odjava">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-box-arrow-right" viewBox="0 0 16 16" aria-hidden="true">
-                                            <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0z"/>
-                                            <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708z"/>
+                            <li class="nav-item dropdown korisnicki-meni">
+                                <button type="button" class="dugme-korisnik dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"
+                                        aria-label="Meni naloga {{ auth()->user()->korisnicko_ime }}">
+                                    <span class="avatar" aria-hidden="true">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                                            <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                                            <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
                                         </svg>
-                                    </button>
-                                </form>
+                                    </span>
+                                    <span class="ime">{{ auth()->user()->korisnicko_ime }}</span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li class="px-3 pt-1 pb-2">
+                                        <div class="fw-semibold">{{ auth()->user()->korisnicko_ime }}</div>
+                                        <div class="small text-body-secondary text-break">{{ auth()->user()->email }}</div>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{{ route('nalog') }}">Moj nalog i podaci</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{{ route('pravno.politika') }}">Politika privatnosti</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('pravno.uslovi') }}">Uslovi korišćenja</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form method="POST" action="{{ route('odjava') }}">
+                                            @csrf
+                                            <button type="submit" class="dropdown-item stavka-odjava">Odjavi se</button>
+                                        </form>
+                                    </li>
+                                </ul>
                             </li>
                         @else
                             <li class="nav-item">
@@ -70,5 +86,20 @@
                 @yield('sadrzaj')
             </div>
         </main>
+
+        <footer class="podnozje border-top">
+            <div class="@yield('kontejner', 'container') d-flex flex-wrap align-items-center justify-content-between gap-2 py-3">
+                <span>
+                    © {{ now()->year }} BrokerPorez.
+                    <a href="{{ route('pravno.politika') }}">Podaci se čuvaju u EU i obrađuju u skladu sa GDPR-om i Zakonom o zaštiti podataka o ličnosti.</a>
+                </span>
+                <nav aria-label="Pravne informacije">
+                    <ul class="list-inline mb-0">
+                        <li class="list-inline-item"><a href="{{ route('pravno.politika') }}">Politika privatnosti</a></li>
+                        <li class="list-inline-item"><a href="{{ route('pravno.uslovi') }}">Uslovi korišćenja</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </footer>
     </body>
 </html>

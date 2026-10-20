@@ -41,6 +41,7 @@
                             <button type="submit" class="btn btn-primary">Uvezi transakcije</button>
                         </div>
                         <ul class="small text-body-secondary mt-2 mb-0 ps-3" data-lista-fajlova="fajlovi"></ul>
+                        @include('porezi._napomena-uvoza')
                     </form>
                 @else
                     <p class="text-body-secondary small">
@@ -66,6 +67,7 @@
                             </div>
                             <button type="submit" class="btn btn-primary">Nastavi</button>
                         </div>
+                        @include('porezi._napomena-uvoza', ['carobnjak' => true])
                     </form>
 
                     @if ($sabloni->isNotEmpty())

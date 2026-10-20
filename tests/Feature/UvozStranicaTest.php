@@ -31,6 +31,7 @@ class UvozStranicaTest extends TestCase
             ->assertOk()
             ->assertSee('<select id="izvor" name="izvor"', false)
             ->assertSee('Uvezi transakcije')
+            ->assertSee('Sam CSV fajl ne čuvamo: briše se odmah po uvozu.')
             ->assertDontSee('Novi šablon');
 
         $this->assertMatchesRegularExpression('/<option value="trading212"\s+selected\s*>/', $odgovor->getContent());
@@ -45,6 +46,7 @@ class UvozStranicaTest extends TestCase
             ->assertOk()
             ->assertSee('Novi šablon')
             ->assertSee('Moj broker')
+            ->assertSee('najkasnije posle 24 sata')
             ->assertSee(route('uvoz.rucni'), false);
     }
 

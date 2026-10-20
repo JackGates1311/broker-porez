@@ -6,6 +6,8 @@ use App\Http\Controllers\Auth\RegistracijaController;
 use App\Http\Controllers\Auth\ResetLozinkeController;
 use App\Http\Controllers\Auth\VerifikacijaController;
 use App\Http\Controllers\Auth\ZaboravljenaLozinkaController;
+use App\Http\Controllers\JavneStraneController;
+use App\Http\Controllers\NalogController;
 use App\Http\Controllers\Porezi\DashboardController;
 use App\Http\Controllers\Porezi\DividendeController;
 use App\Http\Controllers\Porezi\IzvozController;
@@ -15,7 +17,9 @@ use App\Http\Controllers\Porezi\UvozController;
 use App\Http\Controllers\Porezi\UvozRucniController;
 use Illuminate\Support\Facades\Route;
 
-Route::redirect('/', '/pocetna');
+Route::get('/', [JavneStraneController::class, 'pocetna'])->name('dobrodosli');
+Route::get('/politika-privatnosti', [JavneStraneController::class, 'politika'])->name('pravno.politika');
+Route::get('/uslovi-koriscenja', [JavneStraneController::class, 'uslovi'])->name('pravno.uslovi');
 
 Route::middleware('guest')->group(function () {
     Route::get('/registracija', [RegistracijaController::class, 'create'])->name('registracija');
@@ -47,6 +51,13 @@ Route::middleware('auth')->group(function () {
     Route::middleware('verifikovan')->group(function () {
         Route::get('/poreski-obaveznik', [PoreskiObaveznikController::class, 'edit'])->name('poreski-obaveznik');
         Route::put('/poreski-obaveznik', [PoreskiObaveznikController::class, 'update']);
+
+        // Bez 'obaveznik': nalog se može preuzeti i obrisati i pre popunjavanja profila.
+        Route::get('/nalog', [NalogController::class, 'index'])->name('nalog');
+        Route::get('/nalog/korisnicko-ime', [NalogController::class, 'korisnickoIme'])->name('nalog.korisnicko-ime');
+        Route::put('/nalog/korisnicko-ime', [NalogController::class, 'sacuvajKorisnickoIme']);
+        Route::get('/nalog/izvoz', [NalogController::class, 'izvoz'])->name('nalog.izvoz');
+        Route::delete('/nalog', [NalogController::class, 'destroy'])->name('nalog.obrisi');
     });
 
     Route::middleware(['verifikovan', 'obaveznik'])->group(function () {

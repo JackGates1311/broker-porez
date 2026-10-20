@@ -8,7 +8,8 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * Domenske tabele su u sql/, a ne u migracijama, pa ih testovi prave sami
- * (SQLite verzija sql/*.sql zaključno sa sql/uvoz/izvori_uvoza.sql i sql/porezi/tekuci_racun_pasos.sql i sql/auth/google_oauth.sql).
+ * (SQLite verzija sql/*.sql zaključno sa sql/uvoz/izvori_uvoza.sql, sql/porezi/tekuci_racun_pasos.sql, sql/auth/google_oauth.sql
+ * sql/pravno/privatnost.sql i sql/pravno/obavestenje_uslova.sql).
  */
 trait DomenskeTabele
 {
@@ -23,23 +24,33 @@ trait DomenskeTabele
             $tabela->string('remember_token', 100)->nullable();
             $tabela->string('google_id')->nullable()->unique();
             $tabela->timestamp('kreirano_at')->useCurrent();
+            $tabela->timestamp('uslovi_prihvaceni_at')->nullable();
+            $tabela->string('uslovi_verzija', 20)->nullable();
+            $tabela->string('uslovi_obavesten_verzija', 20)->nullable();
+        });
+
+        Schema::create('obrisani_nalozi', function (Blueprint $tabela) {
+            $tabela->increments('id');
+            $tabela->char('registrovan_mesec', 7);
+            $tabela->string('nacin_prijave', 10);
+            $tabela->timestamp('obrisano_at')->useCurrent();
         });
 
         Schema::create('poreski_obaveznik', function (Blueprint $tabela) {
             $tabela->unsignedInteger('korisnik_id')->primary();
             $tabela->tinyInteger('tip_obaveznika')->nullable();
-            $tabela->string('pib', 13)->nullable();
+            $tabela->text('pib')->nullable();
             $tabela->string('ime_prezime', 150)->nullable();
             $tabela->string('adresa')->nullable();
             $tabela->string('prebivaliste')->nullable();
             $tabela->char('opstina_sifra', 3)->nullable();
             $tabela->string('telefon', 30)->nullable();
             $tabela->string('email', 100)->nullable();
-            $tabela->char('jmbg_podnosioca', 13)->nullable();
+            $tabela->text('jmbg_podnosioca')->nullable();
             $tabela->string('zemlja_rezidentstva', 3)->nullable();
             $tabela->string('pib_punomocnika', 13)->nullable();
-            $tabela->char('tekuci_racun', 18)->nullable();
-            $tabela->string('broj_pasosa', 30)->nullable();
+            $tabela->text('tekuci_racun')->nullable();
+            $tabela->text('broj_pasosa')->nullable();
             $tabela->timestamp('azurirano_at')->nullable();
         });
 
@@ -117,7 +128,7 @@ trait DomenskeTabele
     }
 
     /**
-     * Verifikovan korisnik sa popunjenim podacima poreskog obaveznika (prolazi verifikovan i obaveznik).
+     * Verifikovan korisnik sa popunjenim podacima poreskog obaveznika i prihvaćenim uslovima (prolazi verifikovan i obaveznik).
      */
     protected function spremanKorisnik(string $ime = 'pera'): Korisnik
     {
@@ -127,6 +138,7 @@ trait DomenskeTabele
             'lozinka_hash' => 'Lozinka123',
         ]);
         $korisnik->forceFill(['email_verifikovan_at' => now()])->save();
+        $korisnik->prihvatiUslove();
 
         $korisnik->poreskiObaveznik()->create([
             'tip_obaveznika' => 1,

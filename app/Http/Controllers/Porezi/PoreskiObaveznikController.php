@@ -21,6 +21,9 @@ class PoreskiObaveznikController extends Controller
         return view('porezi.poreski-obaveznik', [
             'obaveznik' => $obaveznik,
             'popunjen' => $obaveznik->exists && $obaveznik->jePopunjen(),
+            'nedostajeZaXml' => $obaveznik->nedostajeZaXml(),
+            'prihvatioUslove' => $korisnik->prihvatioUslove(),
+            'ranijePrihvatio' => $korisnik->uslovi_verzija !== null,
         ]);
     }
 
@@ -28,9 +31,13 @@ class PoreskiObaveznikController extends Controller
     {
         /** @var Korisnik $korisnik */
         $korisnik = $request->user();
-        $biloPopunjeno = (bool) $korisnik->poreskiObaveznik?->jePopunjen();
+        $biloPopunjeno = $korisnik->poreskiObaveznik?->jePopunjen() && $korisnik->prihvatioUslove();
 
         $korisnik->poreskiObaveznik()->updateOrCreate([], $request->podaci());
+
+        if (! $korisnik->prihvatioUslove()) {
+            $korisnik->prihvatiUslove();
+        }
 
         // Prvi unos otključava ostatak aplikacije, pa se korisnik vodi na pregled.
         return redirect()->route($biloPopunjeno ? 'poreski-obaveznik' : 'pocetna')

@@ -42,12 +42,21 @@ final class PpOpoXml
 
         $xml->otvori('PodaciOPoreskomObvezniku')
             ->element('PoreskiIdentifikacioniBroj', (string) $obaveznik->pib)
-            ->cdata('ImePrezimeObveznika', (string) $obaveznik->ime_prezime)
-            ->cdata('UlicaBrojPoreskogObveznika', (string) $obaveznik->adresa)
-            ->element('PrebivalisteOpstina', (string) $obaveznik->opstina_sifra)
-            ->element('JMBGPodnosiocaPrijave', (string) $obaveznik->jmbg_podnosioca)
-            ->element('TelefonKontaktOsobe', (string) $obaveznik->telefon)
-            ->cdata('ElektronskaPosta', (string) $obaveznik->email);
+            ->cdata('ImePrezimeObveznika', (string) $obaveznik->ime_prezime);
+
+        // Adresa i telefon su opcioni i u profilu i u šemi (minOccurs="0").
+        if (filled($obaveznik->adresa)) {
+            $xml->cdata('UlicaBrojPoreskogObveznika', $obaveznik->adresa);
+        }
+
+        $xml->element('PrebivalisteOpstina', (string) $obaveznik->opstina_sifra)
+            ->element('JMBGPodnosiocaPrijave', (string) $obaveznik->jmbg_podnosioca);
+
+        if (filled($obaveznik->telefon)) {
+            $xml->element('TelefonKontaktOsobe', $obaveznik->telefon);
+        }
+
+        $xml->cdata('ElektronskaPosta', (string) $obaveznik->email);
 
         if (filled($obaveznik->zemlja_rezidentstva)) {
             $xml->element('DrzavaRezidenstva', $obaveznik->zemlja_rezidentstva);

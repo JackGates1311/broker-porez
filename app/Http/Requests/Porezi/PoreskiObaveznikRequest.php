@@ -9,6 +9,7 @@ use App\Support\TekuciRacun;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Arr;
 use Illuminate\Validation\Rule;
 
 class PoreskiObaveznikRequest extends FormRequest
@@ -54,24 +55,26 @@ class PoreskiObaveznikRequest extends FormRequest
     {
         return [
             'tip_obaveznika' => ['required', 'integer', Rule::in(array_keys(PoreskiObaveznik::TIPOVI))],
-            'pib' => ['required', 'regex:/^(\d{9}|\d{13})$/'],
+            'pib' => ['nullable', 'regex:/^(\d{9}|\d{13})$/'],
             'ime_prezime' => ['required', 'string', 'max:150'],
-            'prebivaliste' => ['required', 'string', 'max:255'],
+            'prebivaliste' => ['nullable', 'string', 'max:255'],
             'opstina_sifra' => ['required', Rule::in(array_keys(config('opstine')))],
-            'adresa' => ['required', 'string', 'max:255'],
+            'adresa' => ['nullable', 'string', 'max:255'],
             // Cifre i uobičajeni separatori (+ samo na početku), od 6 do 15 cifara (E.164).
-            'telefon' => ['required', 'string', 'max:30', 'regex:/^\+?(?=(?:\D*\d){6,15}\D*$)[\d ()\/.-]+$/'],
+            'telefon' => ['nullable', 'string', 'max:30', 'regex:/^\+?(?=(?:\D*\d){6,15}\D*$)[\d ()\/.-]+$/'],
             // Strogo po RFC-u i filteru PHP-a, uz domen sa nastavkom od bar dva slova (odbija a@b, ime@localhost).
             'email' => ['required', 'string', 'max:100', 'email:rfc,strict,filter', 'regex:/@[^@\s]+\.[A-Za-z]{2,}$/'],
-            'jmbg_podnosioca' => ['required', 'digits:13'],
+            'jmbg_podnosioca' => ['nullable', 'digits:13'],
             'zemlja_rezidentstva' => ['required', Rule::in(array_keys(config('drzave')))],
             'pib_punomocnika' => ['nullable', 'regex:/^(\d{9}|\d{13})$/'],
-            'tekuci_racun' => ['bail', 'required', 'digits:18', function (string $atribut, mixed $vrednost, Closure $greska) {
+            'tekuci_racun' => ['bail', 'nullable', 'digits:18', function (string $atribut, mixed $vrednost, Closure $greska) {
                 if (! TekuciRacun::kontrolniBrojJeIspravan((string) $vrednost)) {
                     $greska(__('validation.custom.tekuci_racun.kontrolni_broj'));
                 }
             }],
             'broj_pasosa' => ['nullable', 'string', 'max:30', 'regex:/^[A-Z0-9]+$/'],
+            // Polje se prikazuje samo dok važeća verzija uslova nije prihvaćena.
+            'prihvatam_uslove' => $this->user()->prihvatioUslove() ? ['exclude'] : ['accepted'],
         ];
     }
 
@@ -82,7 +85,7 @@ class PoreskiObaveznikRequest extends FormRequest
      */
     public function podaci(): array
     {
-        $podaci = $this->validated();
+        $podaci = Arr::except($this->validated(), 'prihvatam_uslove');
         $tip = (int) $podaci['tip_obaveznika'];
 
         $podaci['tip_obaveznika'] = $tip;

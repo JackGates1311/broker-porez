@@ -28,10 +28,18 @@ class PoreskiObaveznik extends Model
         4 => 'Nerezidentno fizičko lice koje nema boravište u Republici Srbiji',
     ];
 
-    /** Polja koja svaki obaveznik mora da popuni (2.10 i broj pasoša su opcioni). */
+    /**
+     * Polja koja svaki obaveznik mora da popuni. Osetljiva polja (2.2, 2.4 prebivalište, 2.5 adresa, 2.6 telefon,
+     * 2.8, tekući račun, broj pasoša) i 2.10 su opciona: PDF ih ostavlja praznim, a XML traži ZA_XML.
+     */
     public const OBAVEZNA_POLJA = [
-        'tip_obaveznika', 'pib', 'ime_prezime', 'prebivaliste', 'opstina_sifra', 'adresa',
-        'telefon', 'email', 'jmbg_podnosioca', 'zemlja_rezidentstva', 'tekuci_racun',
+        'tip_obaveznika', 'ime_prezime', 'opstina_sifra', 'email', 'zemlja_rezidentstva',
+    ];
+
+    /** Bez ovih polja portal ePorezi ne prima prijavu, pa se XML ne pravi. */
+    public const ZA_XML = [
+        'pib' => '2.2 poreski identifikacioni broj (JMBG/EBS/PIB)',
+        'jmbg_podnosioca' => '2.8 JMBG podnosioca prijave',
     ];
 
     protected $table = 'poreski_obaveznik';
@@ -44,6 +52,11 @@ class PoreskiObaveznik extends Model
     {
         return [
             'tip_obaveznika' => 'integer',
+            // Identifikatori i račun su u bazi šifrovani (APP_KEY); videti php artisan obaveznik:sifruj.
+            'pib' => 'encrypted',
+            'jmbg_podnosioca' => 'encrypted',
+            'tekuci_racun' => 'encrypted',
+            'broj_pasosa' => 'encrypted',
         ];
     }
 
@@ -56,5 +69,15 @@ class PoreskiObaveznik extends Model
         }
 
         return true;
+    }
+
+    /**
+     * Nazivi polja iz ZA_XML koja nisu uneta.
+     *
+     * @return list<string>
+     */
+    public function nedostajeZaXml(): array
+    {
+        return array_values(array_filter(self::ZA_XML, fn (string $naziv, string $polje) => blank($this->{$polje}), ARRAY_FILTER_USE_BOTH));
     }
 }

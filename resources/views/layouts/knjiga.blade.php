@@ -39,4 +39,9 @@
     </nav>
 
     @yield('knjiga')
+
+    <p class="small text-body-secondary mt-5 mb-0">
+        BrokerPorez je pomoćni alat: obračun zavisi od podataka koje uvezete. Proverite obrasce pre podnošenja prijave.
+        <a href="{{ route('pravno.uslovi') }}">Uslovi korišćenja</a>
+    </p>
 @endsection
