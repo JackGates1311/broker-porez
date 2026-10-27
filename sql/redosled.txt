@@ -20,6 +20,7 @@ sql/podrska/zadovoljstvo.sql
 sql/baza/vremenska_zona_utc.sql
 sql/session/laravel_session_table_create.sql
 sql/cache/laravel_cache_table_create.sql
+sql/baza/ukloni_stock_tabele.sql
 
 # starija kopija sql/auth/korisnici_verifikacija.sql (isti ALTER i verifikacioni_kodovi)
 !sql/broker_proezi_create_tables_2.sql

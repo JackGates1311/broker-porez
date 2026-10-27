@@ -110,8 +110,8 @@ jobs:
             npm ci || npm install
             npm run build
             
-            echo "--- Pokretanje migracija baze ---"
-            php artisan migrate --force
+            # Šema baze nije u migracijama: sql/ fajlovi se primenjuju ručno, redom iz sql/redosled.txt.
+            # (database/migrations su stock Laravel tabele i ne pokreću se nad MariaDB-om.)
             
             echo "--- Čišćenje i optimizacija Laravel keša ---"
             php artisan config:clear
@@ -122,6 +122,10 @@ jobs:
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
+
+            # Artisan iznad radi kao SSH korisnik (root): fajlovi koje napravi (npr. dnevni log) moraju da budu
+            # upisivi za PHP-FPM (www-data), inače sajt ne može da piše u log.
+            chown -R www-data:www-data storage bootstrap/cache
 
             sudo systemctl reload php8.4-fpm
 
