@@ -5,29 +5,22 @@ namespace Tests\Feature;
 use App\Mail\ResetLozinkeMail;
 use App\Models\Korisnik;
 use App\Services\ResetLozinkeService;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Schema;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\InvalidStateException;
 use Laravel\Socialite\Two\User as SocialiteKorisnik;
-use PHPUnit\Framework\Attributes\RequiresPhpExtension;
-use Tests\Feature\Concerns\DomenskeTabele;
+use Tests\Feature\Concerns\TestBaza;
 use Tests\TestCase;
 
-#[RequiresPhpExtension('pdo_sqlite')]
 class GooglePrijavaTest extends TestCase
 {
-    use DomenskeTabele;
-    use RefreshDatabase;
+    use TestBaza;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->napraviDomenskeTabele();
         $this->withoutVite();
     }
 
@@ -45,7 +38,7 @@ class GooglePrijavaTest extends TestCase
         $this->get(route('prijava'))
             ->assertOk()
             ->assertSee(route('prijava.google'), escape: false)
-            ->assertSee('Prijavi se preko Google-a');
+            ->assertSee('Prijavi se putem Google naloga');
     }
 
     public function test_dugme_preusmerava_na_google(): void
@@ -187,13 +180,6 @@ class GooglePrijavaTest extends TestCase
 
     public function test_google_korisnik_moze_da_postavi_lozinku_i_prijavi_se_klasicno(): void
     {
-        Schema::create('tokeni_reset_lozinke', function (Blueprint $tabela) {
-            $tabela->id();
-            $tabela->unsignedInteger('korisnik_id');
-            $tabela->char('token_hash', 64)->unique();
-            $tabela->dateTime('istice_at');
-            $tabela->timestamp('kreirano_at')->useCurrent();
-        });
         Mail::fake();
 
         $this->googleVraca('pera@gmail.com');

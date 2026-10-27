@@ -9,10 +9,16 @@ use BcMath\Number;
  */
 final class Decimal
 {
-    public static function n(Number|string|int|null $vrednost): Number
+    public static function n(Number|string|int|float|null $vrednost): Number
     {
         if ($vrednost instanceof Number) {
             return $vrednost;
+        }
+
+        // MariaDB vraća DECIMAL kao tekst, ali float stiže iz drugih izvora (pdo_sqlite, json_decode). Bez float
+        // u potpisu PHP bi ga pretvorio u int i odsekao decimale; zapisuje se na 10 decimala, kao DECIMAL(28,10).
+        if (is_float($vrednost)) {
+            $vrednost = sprintf('%.10F', $vrednost);
         }
 
         $vrednost = trim((string) $vrednost);

@@ -2,6 +2,8 @@ import 'bootstrap';
 
 import { initKodUnos, initOdbrojavanje, initPredloge, initPrikazLozinke, initValidacijaFormi } from './auth';
 import { initAutoSlanje, initListeFajlova, initPotvrde, initSlanje, initTabele, initTabove, initTipObaveznika } from './dashboard';
+import { initPodrska } from './podrska';
+import { initZadovoljstvo } from './zadovoljstvo';
 
 document.addEventListener('DOMContentLoaded', () => {
     initPrikazLozinke();
@@ -16,4 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initTabele();
     initTipObaveznika();
     initTabove();
+    initPodrska();
+    initZadovoljstvo();
 });

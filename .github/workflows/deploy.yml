@@ -5,7 +5,75 @@ on:
     branches: [ "main" ]
 
 jobs:
+  # Deploy kreće samo ako prođu svi testovi, typecheck i build asseta.
+  test:
+    runs-on: ubuntu-latest
+
+    # MariaDB iste verzije kao produkcija; šemu iz sql/ fajlova pravi Tests\Baza\PripremaBaze.
+    # Port 13306 i lozinka „test” su podrazumevane vrednosti iz phpunit.xml.
+    services:
+      baza:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: test
+        ports:
+          - 13306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=2s
+          --health-timeout=5s
+          --health-retries=30
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          # bcmath: obračun poreza (BcMath\Number); pdo_mysql: Laravel; mysqli: učitavanje sql/ fajlova u test bazu.
+          extensions: mbstring, xml, ctype, iconv, intl, bcmath, fileinfo, pdo_mysql, mysqli
+          coverage: none
+          tools: composer
+
+      - name: Install Composer Dependencies (sa dev paketima za PHPUnit)
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install NPM Dependencies
+        run: npm ci
+
+      - name: TypeScript provera
+        run: npm run typecheck
+
+      # public/build nije u git-u, a stranice koje testovi prikazuju učitavaju Vite manifest.
+      - name: Build asseta (Vite)
+        run: npm run build
+
+      - name: Testovi (PHPUnit)
+        run: php artisan test
+
+      - name: Send Failure Email via Brevo SMTP
+        if: failure()
+        uses: dawidd6/action-send-mail@v3.12.0
+        with:
+          server_address: smtp-relay.brevo.com
+          server_port: 587
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "❌ [TESTOVI] Deploy zaustavljen - brokerporez.net"
+          body: "Testovi, TypeScript provera ili build nisu prošli, pa deploy na server nije pokrenut. Produkcija radi na prethodnoj verziji. Proverite GitHub Actions logove."
+          to: "makimitrovic07@gmail.com"
+          from: "BrokerPorez CI/CD <no-reply@brokerporez.net>"
+
   deploy:
+    needs: test
     runs-on: ubuntu-latest
 
     steps:

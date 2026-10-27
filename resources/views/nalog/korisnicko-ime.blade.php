@@ -11,7 +11,7 @@
                 Kasnije ga možete promeniti u delu „Moj nalog”.
             </p>
 
-            <form method="POST" action="{{ route('nalog.korisnicko-ime') }}" class="needs-validation" novalidate>
+            <form method="POST" action="{{ route('nalog.korisnicko-ime') }}" class="needs-validation" novalidate data-samo-greske>
                 @csrf
                 @method('PUT')
 

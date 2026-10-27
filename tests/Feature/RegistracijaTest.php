@@ -3,31 +3,16 @@
 namespace Tests\Feature;
 
 use App\Models\Korisnik;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Schema;
-use PHPUnit\Framework\Attributes\RequiresPhpExtension;
+use Tests\Feature\Concerns\TestBaza;
 use Tests\TestCase;
 
-#[RequiresPhpExtension('pdo_sqlite')]
 class RegistracijaTest extends TestCase
 {
-    use RefreshDatabase;
+    use TestBaza;
 
     protected function setUp(): void
     {
         parent::setUp();
-
-        // Domenske tabele su u sql/, a ne u migracijama, pa ih test pravi sam.
-        Schema::create('korisnici', function (Blueprint $tabela) {
-            $tabela->increments('id');
-            $tabela->string('korisnicko_ime', 50)->unique();
-            $tabela->string('email', 100)->unique();
-            $tabela->string('lozinka_hash');
-            $tabela->timestamp('email_verifikovan_at')->nullable();
-            $tabela->string('remember_token', 100)->nullable();
-            $tabela->timestamp('kreirano_at')->useCurrent();
-        });
 
         $this->withoutVite();
 

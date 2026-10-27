@@ -101,5 +101,9 @@
                 </nav>
             </div>
         </footer>
+
+        @if (auth()->user()?->jeInsajder() && auth()->user()->jeVerifikovan())
+            @include('layouts._podrska')
+        @endif
     </body>
 </html>

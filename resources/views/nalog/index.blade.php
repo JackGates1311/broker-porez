@@ -29,13 +29,36 @@
 
         <section class="border bg-white p-4 mb-4" aria-labelledby="korisnickoImeNaslov">
             <h2 id="korisnickoImeNaslov" class="h5 mb-3">Korisničko ime</h2>
-            <form method="POST" action="{{ route('nalog.korisnicko-ime') }}" class="needs-validation" novalidate>
+            <form method="POST" action="{{ route('nalog.korisnicko-ime') }}" class="needs-validation" novalidate data-samo-greske>
                 @csrf
                 @method('PUT')
                 <div class="mb-3">
                     @include('auth._korisnicko-ime', ['vrednost' => $korisnik->korisnicko_ime])
                 </div>
                 <button type="submit" class="btn btn-outline-primary">Sačuvaj ime</button>
+            </form>
+        </section>
+
+        <section class="border bg-white p-4 mb-4" aria-labelledby="povratneInformacije">
+            <h2 id="povratneInformacije" class="h5 mb-2 d-flex align-items-center gap-2">
+                Povratne informacije
+                @if ($korisnik->jeInsajder())
+                    <span class="badge rounded-pill text-bg-light border fw-normal">Uključeno</span>
+                @endif
+            </h2>
+            <p class="text-body-secondary">
+                Uključite dugme „Povratna informacija” u donjem desnom uglu i javite nam grešku, nejasnoću ili ideju,
+                uz snimak ekrana ili fajl ako treba. Odgovor stiže na vašu email adresu.
+                Povremeno, posle izvoza obrasca, pitaćemo vas i koliko ste zadovoljni (ocena od 1 do 5).
+                Poruke i ocene se čuvaju uz nalog i brišu se zajedno sa njim.
+            </p>
+            <form method="POST" action="{{ route('nalog.insajder') }}">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="insajder" value="{{ $korisnik->jeInsajder() ? 0 : 1 }}">
+                <button type="submit" class="btn btn-outline-primary">
+                    {{ $korisnik->jeInsajder() ? 'Isključi dugme' : 'Uključi dugme' }}
+                </button>
             </form>
         </section>
 
@@ -55,7 +78,7 @@
         <section class="border bg-white p-4 mb-4" aria-labelledby="mojiPodaci">
             <h2 id="mojiPodaci" class="h5 mb-2">Moji podaci</h2>
             <p class="text-body-secondary">
-                Preuzmite sve što čuvamo o vama: nalog, podatke obaveznika, transakcije i šablone uvoza, u JSON fajlu.
+                Preuzmite sve što čuvamo o vama: nalog, podatke obaveznika, transakcije, šablone uvoza, poruke podrške i ocene zadovoljstva, u JSON fajlu.
                 Podaci se čuvaju na serveru u EU, ne prodajemo ih i ne delimo radi oglašavanja.
                 Detalji su u <a href="{{ route('pravno.politika') }}">Politici privatnosti</a>.
             </p>
@@ -65,7 +88,7 @@
         <section class="opasna-zona" aria-labelledby="brisanjeNaloga">
             <h2 id="brisanjeNaloga" class="h5 mb-2 text-danger">Brisanje naloga</h2>
             <p>
-                Brisanje je trajno: uklanjaju se nalog, podaci obaveznika, sve transakcije, obračuni i šabloni, i ne mogu se vratiti.
+                Brisanje je trajno: uklanjaju se nalog, podaci obaveznika, sve transakcije, obračuni, šabloni, poruke podrške i ocene, i ne mogu se vratiti.
                 Pre brisanja preuzmite PDF/XML obrasce i svoje podatke, jer dokumentaciju za poresku prijavu čuvate vi.
             </p>
 

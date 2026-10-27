@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\VerifikacijaController;
 use App\Http\Controllers\Auth\ZaboravljenaLozinkaController;
 use App\Http\Controllers\JavneStraneController;
 use App\Http\Controllers\NalogController;
+use App\Http\Controllers\PodrskaController;
 use App\Http\Controllers\Porezi\DashboardController;
 use App\Http\Controllers\Porezi\DividendeController;
 use App\Http\Controllers\Porezi\IzvozController;
@@ -15,6 +16,7 @@ use App\Http\Controllers\Porezi\KapitalnaDobitController;
 use App\Http\Controllers\Porezi\PoreskiObaveznikController;
 use App\Http\Controllers\Porezi\UvozController;
 use App\Http\Controllers\Porezi\UvozRucniController;
+use App\Http\Controllers\ZadovoljstvoController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [JavneStraneController::class, 'pocetna'])->name('dobrodosli');
@@ -58,6 +60,15 @@ Route::middleware('auth')->group(function () {
         Route::put('/nalog/korisnicko-ime', [NalogController::class, 'sacuvajKorisnickoIme']);
         Route::get('/nalog/izvoz', [NalogController::class, 'izvoz'])->name('nalog.izvoz');
         Route::delete('/nalog', [NalogController::class, 'destroy'])->name('nalog.obrisi');
+        Route::put('/nalog/insajder', [NalogController::class, 'insajder'])->name('nalog.insajder');
+
+        // Widget za povratne informacije: samo korisnici koji su ga uključili u Moj nalog, ostalima 404.
+        Route::post('/podrska', [PodrskaController::class, 'posalji'])
+            ->middleware(['insajder', 'throttle:podrska'])
+            ->name('podrska.posalji');
+        Route::post('/zadovoljstvo', [ZadovoljstvoController::class, 'sacuvaj'])
+            ->middleware(['insajder', 'throttle:10,1'])
+            ->name('zadovoljstvo.sacuvaj');
     });
 
     Route::middleware(['verifikovan', 'obaveznik'])->group(function () {

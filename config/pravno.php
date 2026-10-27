@@ -17,13 +17,18 @@ return [
     |
     */
 
-    'verzija' => '2026-10-20',
+    'verzija' => '2026-11-15',
 
     // Datum stupanja na snagu (Y-m-d).
-    'vazi_od' => '2026-10-20',
+    'vazi_od' => '2026-11-15',
 
     // Kratak opis izmena u odnosu na prethodnu verziju, za mejl obaveštenja.
-    'izmene' => [],
+    'izmene' => [
+        'Uvedene su povratne informacije koje uključujete sami u Moj nalog: poruke podrške sa prilozima i povremeno pitanje o zadovoljstvu (ocena od 1 do 5) posle izvoza obrasca. Čuvaju se dok imate nalog i brišu se zajedno sa njim.',
+        'Novi obrađivač: Zoho Corporation B.V. (Holandija), sanduče podrške u koje stižu vaše poruke i iz kog vam odgovaramo.',
+        'Brevo, pored sistemskih mejlova, sada prosleđuje i vaše poruke podrške u sanduče podrške.',
+        'Email adresu koristimo i za odgovor na poruke koje nam pošaljete.',
+    ],
 
     // Rukovalac podacima o ličnosti (ZZPL čl. 23, GDPR čl. 13).
     'rukovalac' => [
@@ -44,7 +49,12 @@ return [
         [
             'naziv' => 'Sendinblue SAS (Brevo)',
             'sediste' => 'Francuska',
-            'svrha' => 'Slanje sistemskih mejlova: kod za potvrdu adrese i link za novu lozinku.',
+            'svrha' => 'Slanje sistemskih mejlova (kod za potvrdu adrese, link za novu lozinku) i prosleđivanje poruka podrške u sanduče podrške.',
+        ],
+        [
+            'naziv' => 'Zoho Corporation B.V. (Zoho Mail)',
+            'sediste' => 'Holandija',
+            'svrha' => 'Sanduče podrške ('.(env('PODRSKA_EMAIL') ?: 'podrska@brokerporez.net').'): prijem poruka podrške i odgovori na njih.',
         ],
         [
             'naziv' => 'Google Ireland Limited',

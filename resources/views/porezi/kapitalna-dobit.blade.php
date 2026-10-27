@@ -165,8 +165,8 @@
                         </div>
                     </fieldset>
 
-                    <button type="submit" class="btn btn-primary btn-sm w-100">Preuzmi PPDG-3R (PDF)</button>
-                    <button type="submit" formaction="{{ route('izvoz.ppdg-3r.xml') }}" class="btn btn-outline-primary btn-sm w-100 mt-2" aria-describedby="ppdg-xml-napomena">Preuzmi PPDG-3R (XML za ePorezi)</button>
+                    <button type="submit" class="btn btn-primary btn-sm w-100" data-izvoz-obrasca="ppdg-3r-pdf">Preuzmi PPDG-3R (PDF)</button>
+                    <button type="submit" formaction="{{ route('izvoz.ppdg-3r.xml') }}" class="btn btn-outline-primary btn-sm w-100 mt-2" aria-describedby="ppdg-xml-napomena" data-izvoz-obrasca="ppdg-3r-xml">Preuzmi PPDG-3R (XML za ePorezi)</button>
                 </form>
 
                 @error('xml')

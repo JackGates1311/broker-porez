@@ -27,6 +27,17 @@ class Korisnik extends Authenticatable
      */
     protected $authPasswordName = 'lozinka_hash';
 
+    protected static function booted(): void
+    {
+        // Prvo pitanje o zadovoljstvu je moguće odmah. Vreme upisuje aplikacija (UTC), da ne zavisi od DEFAULT-a baze
+        // (CURRENT_TIMESTAMP je u zoni sesije; config/database.php je drži u UTC-u).
+        static::creating(function (Korisnik $korisnik) {
+            if (! array_key_exists('zadovoljstvo_od', $korisnik->getAttributes())) {
+                $korisnik->zadovoljstvo_od = now();
+            }
+        });
+    }
+
     /**
      * Get the attributes that should be cast.
      *
@@ -38,6 +49,8 @@ class Korisnik extends Authenticatable
             'email_verifikovan_at' => 'datetime',
             'uslovi_prihvaceni_at' => 'datetime',
             'lozinka_hash' => 'hashed',
+            'is_insajder' => 'boolean',
+            'zadovoljstvo_od' => 'datetime',
         ];
     }
 
@@ -89,9 +102,45 @@ class Korisnik extends Authenticatable
         return $this->hasOne(PoreskiObaveznik::class, 'korisnik_id');
     }
 
+    /**
+     * @return HasMany<OcenaZadovoljstva, $this>
+     */
+    public function oceneZadovoljstva(): HasMany
+    {
+        return $this->hasMany(OcenaZadovoljstva::class, 'korisnik_id');
+    }
+
+    /**
+     * @return HasMany<PorukaPodrske, $this>
+     */
+    public function porukePodrske(): HasMany
+    {
+        return $this->hasMany(PorukaPodrske::class, 'korisnik_id');
+    }
+
     public function jeVerifikovan(): bool
     {
         return $this->email_verifikovan_at !== null;
+    }
+
+    /**
+     * Insajder vidi widget za povratne informacije; korisnik ga sam uključuje u Moj nalog (NalogController::insajder, nije fillable).
+     */
+    public function jeInsajder(): bool
+    {
+        return (bool) $this->is_insajder;
+    }
+
+    /**
+     * Da li se posle izvoza obrasca prikazuje pitanje o zadovoljstvu: samo insajderi, kada je prošla pauza
+     * (zadovoljstvo_od). NULL znači „Ne pitaj više”.
+     */
+    public function trebaPitatiZadovoljstvo(): bool
+    {
+        return $this->jeInsajder()
+            && $this->jeVerifikovan()
+            && $this->zadovoljstvo_od !== null
+            && $this->zadovoljstvo_od->lte(now());
     }
 
     /**

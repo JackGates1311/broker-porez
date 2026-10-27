@@ -59,6 +59,9 @@ return [
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,
+            // Sesija baze u UTC-u, kao app.timezone: TIMESTAMP i CURRENT_TIMESTAMP inače idu po zoni servera
+            // (npr. CET), pa bi vreme koje šalje aplikacija bilo pomereno 1–2 h (sql/baza/vremenska_zona_utc.sql).
+            'timezone' => '+00:00',
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
@@ -79,6 +82,9 @@ return [
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,
+            // Sesija baze u UTC-u, kao app.timezone: TIMESTAMP i CURRENT_TIMESTAMP inače idu po zoni servera
+            // (npr. CET), pa bi vreme koje šalje aplikacija bilo pomereno 1–2 h (sql/baza/vremenska_zona_utc.sql).
+            'timezone' => '+00:00',
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],

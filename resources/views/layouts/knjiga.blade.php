@@ -44,4 +44,8 @@
         BrokerPorez je pomoćni alat: obračun zavisi od podataka koje uvezete. Proverite obrasce pre podnošenja prijave.
         <a href="{{ route('pravno.uslovi') }}">Uslovi korišćenja</a>
     </p>
+
+    @if (auth()->user()?->trebaPitatiZadovoljstvo())
+        @include('layouts._zadovoljstvo')
+    @endif
 @endsection

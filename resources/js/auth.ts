@@ -41,7 +41,7 @@ export function initValidacijaFormi(): void {
 
         // Greške sa servera se uklanjaju čim korisnik izmeni polje.
         forma.addEventListener('input', (dogadjaj) => {
-            if (dogadjaj.target instanceof HTMLInputElement) {
+            if (dogadjaj.target instanceof HTMLInputElement || dogadjaj.target instanceof HTMLTextAreaElement) {
                 dogadjaj.target.classList.remove('is-invalid');
             }
 
@@ -57,7 +57,7 @@ export function initValidacijaFormi(): void {
             }
 
             if (forma.hasAttribute('data-samo-greske')) {
-                forma.querySelectorAll<HTMLInputElement>('input:not([type="hidden"])').forEach((polje) => {
+                forma.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input:not([type="hidden"]), textarea').forEach((polje) => {
                     polje.classList.toggle('is-invalid', !polje.validity.valid);
                 });
 

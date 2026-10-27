@@ -1,0 +1,137 @@
+BrokerPorez – sopstvene php artisan komande
+===========================================
+
+Pregled komandi koje je napisao projekat (bez Laravelovih ugrađenih).
+Pomoć za svaku komandu: php artisan help <ime>   (npr. php artisan help pravno:obavesti)
+Spisak svih komandi:     php artisan list
+
+
+Kako su definisane
+------------------
+
+- Svaka komanda je klasa u app/Console/Commands/ koja nasleđuje Illuminate\Console\Command.
+- Ime, argumenti i opcije su u PHP atributu #[Signature('...')], a opis (vidi se u
+  php artisan list) u #[Description('...')]. Ovo je Laravel 13 način, umesto svojstava
+  $signature i $description.
+- Logika je u metodi handle(), koja vraća self::SUCCESS ili self::FAILURE. Servisi se
+  ubacuju kao parametri metode, npr. handle(PodrskaService $servis).
+- Komande se nigde ne registruju ručno: Laravel sam pronalazi sve klase u
+  app/Console/Commands/.
+- Zakazivanje (cron) je u routes/console.php.
+
+Nova komanda: php artisan make:command ImeKomande, pa u napravljenoj klasi zameniti
+$signature/$description atributima #[Signature] i #[Description], kao u postojećim.
+
+
+1. obaveznik:sifruj
+-------------------
+
+Fajl:     app/Console/Commands/SifrujObaveznike.php
+Poziv:    php artisan obaveznik:sifruj
+Opcije:   nema
+
+Čemu služi:
+  Jednokratna migracija podataka posle sql/pravno/privatnost.sql. Šifruje JMBG/PIB,
+  JMBG podnosioca, tekući račun i broj pasoša u tabeli poreski_obaveznik koji su
+  upisani pre uvođenja 'encrypted' casta (App\Models\PoreskiObaveznik).
+
+Napomene:
+  - Sme da se pokrene više puta: vrednost koja se već dešifruje se preskače.
+  - Šifruje se ključem APP_KEY. Gubitak ključa znači gubitak tih podataka.
+  - Ispis: "Šifrovano obaveznika: N."
+
+
+2. pravno:obavesti
+------------------
+
+Fajl:     app/Console/Commands/ObavestiOIzmeniUslova.php
+Poziv:    php artisan pravno:obavesti [--proba] [--limit=250]
+Opcije:
+  --proba       Samo prikaže koliko bi mejlova otišlo, ništa ne šalje.
+  --limit=250   Najviše mejlova u jednom pokretanju (dnevni limit SMTP-a / Brevo).
+
+Čemu služi:
+  Posle izmene Uslova korišćenja ili Politike privatnosti šalje mejl (IzmenaUslovaMail)
+  svim verifikovanim korisnicima koji nisu prihvatili novu verziju i još nisu obavešteni.
+
+Napomene:
+  - Obavešteni korisnik se pamti u korisnici.uslovi_obavesten_verzija, pa sledeće
+    pokretanje nastavlja od onih kojima mejl još nije poslat (npr. sutra, zbog limita).
+  - Odbija da radi dok je 'izmene' u config/pravno.php prazno.
+  - Vraća FAILURE ako bar jedan mejl nije poslat.
+
+Postupak kod izmene uslova:
+  1. U config/pravno.php povećati 'verzija', postaviti 'vazi_od' najmanje 15 dana
+     unapred i u 'izmene' ukratko navesti šta se menja.
+  2. Deploy.
+  3. php artisan pravno:obavesti --proba
+  4. php artisan pravno:obavesti
+  Do 'vazi_od' važi ranije prihvaćena verzija. Posle toga korisnik pre rada u knjizi
+  ponovo prihvata uslove na koraku Poreski obaveznik.
+
+
+3. podrska:posalji-neposlate
+----------------------------
+
+Fajl:     app/Console/Commands/PosaljiNeposlatePorukePodrske.php
+Poziv:    php artisan podrska:posalji-neposlate [--limit=50]
+Opcije:
+  --limit=50    Najviše poruka u jednom pokretanju.
+
+Čemu služi:
+  Poruke iz widgeta "Povratna informacija" (insajderi) se prvo upisuju u bazu
+  (poruke_podrske, prilozi_poruka_podrske), pa se šalju mejlom na PODRSKA_EMAIL.
+  Ako slanje ne uspe (npr. SMTP ne radi), poruka ostaje sa poslato_at = NULL.
+  Ova komanda ponovo šalje takve poruke i upisuje poslato_at za one koje prođu.
+
+Napomene:
+  - Za svaku neuspelu poruku ispisuje upozorenje. Detalji greške su u
+    storage/logs/laravel*.log.
+  - Ispis: "Poslato: N, neuspešno: M." Vraća FAILURE ako je bar jedna neuspešna.
+  - Slanje radi App\Services\PodrskaService::posalji().
+
+
+4. zadovoljstvo:izvestaj
+------------------------
+
+Fajl:     app/Console/Commands/IzvestajZadovoljstva.php
+Poziv:    php artisan zadovoljstvo:izvestaj [--period=prosli-mesec] [--mejl]
+Opcije:
+  --period=...  prosli-mesec (podrazumevano), ovaj-mesec ili godina i mesec, npr. 2026-10.
+                Mesec se računa po beogradskom vremenu (Europe/Belgrade).
+  --mejl        Pošalje izveštaj (ZadovoljstvoIzvestajMail) na PODRSKA_EMAIL.
+                Bez ove opcije izveštaj se samo ispisuje u konzoli.
+
+Čemu služi:
+  Statistika ocena zadovoljstva insajdera (tabela ocene_zadovoljstva) za izabrani mesec:
+  broj odgovora, prosečna ocena, raspodela 1–5, procenat zadovoljnih (ocene 4 i 5),
+  prosek po obrascu (PPDG-3R / PP OPO, PDF / XML), poređenje sa prethodnim mesecom
+  i komentari sa korisničkim imenom.
+
+Napomene:
+  - Prazan mesec sa --mejl ne šalje mejl ("Nema odgovora u ovom mesecu, mejl nije poslat.").
+  - Neispravan --period vraća FAILURE uz poruku o ispravnom formatu.
+  - Računanje radi App\Services\ZadovoljstvoIzvestaj.
+  - Zakazano je mesečno (vidi ispod).
+
+Primeri:
+  php artisan zadovoljstvo:izvestaj
+  php artisan zadovoljstvo:izvestaj --period=ovaj-mesec
+  php artisan zadovoljstvo:izvestaj --period=2026-10 --mejl
+
+
+Zakazane komande (routes/console.php)
+-------------------------------------
+
+  Schedule::command('zadovoljstvo:izvestaj --mejl')
+      ->monthlyOn(1, '08:00')->timezone('Europe/Belgrade');
+
+  Šalje mesečni izveštaj zadovoljstva za prethodni mesec, 1. u mesecu u 08:00.
+
+  Radi samo ako cron na serveru svake minute pokreće scheduler:
+    * * * * * cd /putanja/do/aplikacije && php artisan schedule:run >> /dev/null 2>&1
+
+  Provera plana:  php artisan schedule:list
+
+Ostalo u routes/console.php:
+  inspire – Laravelov primer, ne pripada projektu i može da se obriše.

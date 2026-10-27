@@ -3,16 +3,12 @@
 namespace Tests\Feature;
 
 use App\Models\Korisnik;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use PHPUnit\Framework\Attributes\RequiresPhpExtension;
-use Tests\Feature\Concerns\DomenskeTabele;
+use Tests\Feature\Concerns\TestBaza;
 use Tests\TestCase;
 
-#[RequiresPhpExtension('pdo_sqlite')]
 class UvozStranicaTest extends TestCase
 {
-    use DomenskeTabele;
-    use RefreshDatabase;
+    use TestBaza;
 
     private Korisnik $korisnik;
 
@@ -20,7 +16,6 @@ class UvozStranicaTest extends TestCase
     {
         parent::setUp();
 
-        $this->napraviDomenskeTabele();
         $this->withoutVite();
         $this->korisnik = $this->spremanKorisnik();
     }

@@ -5,24 +5,19 @@ namespace Tests\Feature;
 use App\Mail\IzmenaUslovaMail;
 use App\Models\Korisnik;
 use Carbon\CarbonImmutable;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
-use PHPUnit\Framework\Attributes\RequiresPhpExtension;
-use Tests\Feature\Concerns\DomenskeTabele;
+use Tests\Feature\Concerns\TestBaza;
 use Tests\TestCase;
 
-#[RequiresPhpExtension('pdo_sqlite')]
 class IzmenaUslovaTest extends TestCase
 {
-    use DomenskeTabele;
-    use RefreshDatabase;
+    use TestBaza;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->napraviDomenskeTabele();
         $this->withoutVite();
         Mail::fake();
         Route::middleware(['web', 'auth', 'verifikovan', 'obaveznik'])->get('/proba-uslovi', fn () => 'propusteno');
@@ -40,6 +35,7 @@ class IzmenaUslovaTest extends TestCase
     public function test_bez_opisa_izmena_ne_salje_nista(): void
     {
         $this->spremanKorisnik();
+        config(['pravno.izmene' => []]);
 
         $this->artisan('pravno:obavesti')->assertFailed();
 

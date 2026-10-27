@@ -4,17 +4,13 @@ namespace Tests\Feature;
 
 use App\Models\Korisnik;
 use App\Models\PoreskiObaveznik;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Schema;
-use PHPUnit\Framework\Attributes\RequiresPhpExtension;
+use Tests\Feature\Concerns\TestBaza;
 use Tests\TestCase;
 
-#[RequiresPhpExtension('pdo_sqlite')]
 class PoreskiObaveznikTest extends TestCase
 {
-    use RefreshDatabase;
+    use TestBaza;
 
     private Korisnik $korisnik;
 
@@ -22,39 +18,7 @@ class PoreskiObaveznikTest extends TestCase
     {
         parent::setUp();
 
-        // Domenske tabele su u sql/, a ne u migracijama, pa ih test pravi sam.
-        Schema::create('korisnici', function (Blueprint $tabela) {
-            $tabela->increments('id');
-            $tabela->string('korisnicko_ime', 50)->unique();
-            $tabela->string('email', 100)->unique();
-            $tabela->string('lozinka_hash');
-            $tabela->timestamp('email_verifikovan_at')->nullable();
-            $tabela->string('remember_token', 100)->nullable();
-            $tabela->timestamp('kreirano_at')->useCurrent();
-            $tabela->timestamp('uslovi_prihvaceni_at')->nullable();
-            $tabela->string('uslovi_verzija', 20)->nullable();
-        });
-
-        Schema::create('poreski_obaveznik', function (Blueprint $tabela) {
-            $tabela->unsignedInteger('korisnik_id')->primary();
-            $tabela->tinyInteger('tip_obaveznika')->nullable();
-            $tabela->text('pib')->nullable();
-            $tabela->string('ime_prezime', 150)->nullable();
-            $tabela->string('adresa')->nullable();
-            $tabela->string('prebivaliste')->nullable();
-            $tabela->char('opstina_sifra', 3)->nullable();
-            $tabela->string('telefon', 30)->nullable();
-            $tabela->string('email', 100)->nullable();
-            $tabela->text('jmbg_podnosioca')->nullable();
-            $tabela->string('zemlja_rezidentstva', 3)->nullable();
-            $tabela->string('pib_punomocnika', 13)->nullable();
-            $tabela->text('tekuci_racun')->nullable();
-            $tabela->text('broj_pasosa')->nullable();
-            $tabela->timestamp('azurirano_at')->nullable();
-            $tabela->foreign('korisnik_id')->references('id')->on('korisnici')->cascadeOnDelete();
-        });
-
-        // Prava strana knjige traži domenske tabele, pa se middleware proverava na probnoj ruti.
+        // Middleware se proverava na probnoj ruti, bez stvarne strane knjige.
         Route::middleware(['web', 'auth', 'verifikovan', 'obaveznik'])->get('/proba-obaveznik', fn () => 'propusteno');
 
         $this->withoutVite();
@@ -127,7 +91,8 @@ class PoreskiObaveznikTest extends TestCase
         $this->assertSame('265000000036005146', $obaveznik->tekuci_racun);
         $this->assertSame('AB123456', $obaveznik->broj_pasosa);
 
-        $this->actingAs($this->korisnik)
+        // fresh(): korisnik iz prethodnog zahteva pamti relaciju poreskiObaveznik od pre čuvanja.
+        $this->actingAs($this->korisnik->fresh())
             ->get(route('poreski-obaveznik'))
             ->assertSee('value="265-0000000360051-46"', escape: false);
     }
@@ -218,9 +183,9 @@ class PoreskiObaveznikTest extends TestCase
         $this->assertNull($obaveznik->pib_punomocnika);
         $this->assertTrue($obaveznik->jePopunjen());
 
-        $this->actingAs($this->korisnik)->get('/proba-obaveznik')->assertOk()->assertSee('propusteno');
+        $this->actingAs($this->korisnik->fresh())->get('/proba-obaveznik')->assertOk()->assertSee('propusteno');
 
-        $this->actingAs($this->korisnik)
+        $this->actingAs($this->korisnik->fresh())
             ->put(route('poreski-obaveznik'), $this->ispravniPodaci(['telefon' => '0611111111']))
             ->assertRedirect(route('poreski-obaveznik'));
     }
@@ -285,7 +250,8 @@ class PoreskiObaveznikTest extends TestCase
         $korisnik = $this->korisnik->fresh();
         $this->actingAs($korisnik)->get('/proba-obaveznik')->assertOk();
 
-        config(['pravno.verzija' => '2099-01-01']);
+        // Nova verzija koja je već stupila na snagu (ne zavisi od datuma u config/pravno.php).
+        config(['pravno.verzija' => '2099-01-01', 'pravno.vazi_od' => now()->subDay()->toDateString()]);
 
         $this->actingAs($korisnik)->get('/proba-obaveznik')->assertRedirect(route('poreski-obaveznik'));
         $this->actingAs($korisnik)

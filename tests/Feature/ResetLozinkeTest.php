@@ -4,44 +4,20 @@ namespace Tests\Feature;
 
 use App\Mail\ResetLozinkeMail;
 use App\Models\Korisnik;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Schema;
-use PHPUnit\Framework\Attributes\RequiresPhpExtension;
+use Tests\Feature\Concerns\TestBaza;
 use Tests\TestCase;
 
-#[RequiresPhpExtension('pdo_sqlite')]
 class ResetLozinkeTest extends TestCase
 {
-    use RefreshDatabase;
+    use TestBaza;
 
     private Korisnik $korisnik;
 
     protected function setUp(): void
     {
         parent::setUp();
-
-        // Domenske tabele su u sql/, a ne u migracijama, pa ih test pravi sam.
-        Schema::create('korisnici', function (Blueprint $tabela) {
-            $tabela->increments('id');
-            $tabela->string('korisnicko_ime', 50)->unique();
-            $tabela->string('email', 100)->unique();
-            $tabela->string('lozinka_hash');
-            $tabela->timestamp('email_verifikovan_at')->nullable();
-            $tabela->string('remember_token', 100)->nullable();
-            $tabela->timestamp('kreirano_at')->useCurrent();
-        });
-
-        Schema::create('tokeni_reset_lozinke', function (Blueprint $tabela) {
-            $tabela->id();
-            $tabela->unsignedInteger('korisnik_id');
-            $tabela->char('token_hash', 64)->unique();
-            $tabela->dateTime('istice_at');
-            $tabela->timestamp('kreirano_at')->useCurrent();
-            $tabela->foreign('korisnik_id')->references('id')->on('korisnici')->cascadeOnDelete();
-        });
 
         $this->withoutVite();
         Mail::fake();

@@ -6,17 +6,13 @@ use App\Models\Korisnik;
 use App\Models\Transakcija;
 use App\Services\Obrasci\PpOpoXml;
 use App\Services\Porezi\FifoService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
-use PHPUnit\Framework\Attributes\RequiresPhpExtension;
-use Tests\Feature\Concerns\DomenskeTabele;
+use Tests\Feature\Concerns\TestBaza;
 use Tests\TestCase;
 
-#[RequiresPhpExtension('pdo_sqlite')]
 class IzvozXmlTest extends TestCase
 {
-    use DomenskeTabele;
-    use RefreshDatabase;
+    use TestBaza;
 
     private Korisnik $korisnik;
 
@@ -24,7 +20,6 @@ class IzvozXmlTest extends TestCase
     {
         parent::setUp();
 
-        $this->napraviDomenskeTabele();
         $this->withoutVite();
         $this->korisnik = $this->spremanKorisnik();
     }
@@ -68,7 +63,10 @@ class IzvozXmlTest extends TestCase
         $this->assertContains('AAPL (16.03.2026): nedostaje NBS kurs prodaje ili neke od kupovina.', $greske);
         $this->assertContains('AAPL (16.03.2026): nedostaju uvezene kupovine za 2 kom.', $greske);
 
-        $this->get(route('kapitalna-dobit', ['period' => '2026-H1']))
+        // Poruka je u sesiji, pa se prati preusmerenje kao u pregledaču (novi zahtev bi počeo bez sesije).
+        $this->actingAs($this->korisnik)
+            ->followingRedirects()
+            ->get(route('izvoz.ppdg-3r.xml', ['godina' => 2026, 'polugodiste' => 1]))
             ->assertOk()
             ->assertSee('nedostaju uvezene kupovine za 2 kom.')
             ->assertSee('Preuzmi PPDG-3R (XML za ePorezi)');

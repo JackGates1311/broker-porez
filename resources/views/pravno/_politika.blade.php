@@ -24,6 +24,7 @@
     <li><strong>Podaci naloga:</strong> korisničko ime, email adresa, heš lozinke (lozinku ne znamo), datum registracije i potvrde email adrese, datum i verzija prihvaćenih uslova.</li>
     <li><strong>Podaci poreskog obaveznika</strong> koje unosite za obrasce PPDG-3R i PP OPO: tip obaveznika, JMBG ili PIB, ime i prezime, prebivalište, opština, adresa, telefon, email, JMBG podnosioca, zemlja rezidentstva, JMBG/PIB punomoćnika, tekući račun i broj pasoša.</li>
     <li><strong>Transakcije</strong> iz CSV izvoda koje uvezete: datum i vreme, hartija (ISIN, oznaka, naziv), količina, cena, iznosi, porez po odbitku, provizije i valute, uz kurs NBS primenjen na svaku transakciju. Šabloni uvoza koje sačuvate.</li>
+    <li><strong>Poruke podrške i ocene zadovoljstva</strong>, ako ste u Moj nalog uključili povratne informacije: naslov i tekst poruke, priloženi fajlovi (slike, PDF, TXT), adresa stranice sa koje ste poruku poslali i podaci o pregledaču, kao i ocena od 1 do 5, komentar i obrazac posle čijeg izvoza ste ocenili aplikaciju.</li>
     <li><strong>Tehnički podaci:</strong> sesija za prijavu (sa IP adresom i podacima o pregledaču), privremeni fajl CSV izvoda dok traje čarobnjak uvoza i sistemski logovi grešaka.</li>
 </ul>
 <p>
@@ -33,7 +34,7 @@
 <h2>3. Zašto i na osnovu čega</h2>
 <p>
     Podatke obrađujemo da bismo vam pružili uslugu koju ste zatražili: izračun poreza i pripremu obrazaca (izvršenje ugovora, ZZPL čl. 12 st. 1 tač. 2, GDPR čl. 6(1)(b)).
-    Email koristimo samo za potvrdu adrese i za link za novu lozinku. Ne šaljemo reklamne poruke.
+    Email koristimo samo za potvrdu adrese, za link za novu lozinku i za odgovor na poruke koje nam pošaljete. Ne šaljemo reklamne poruke.
     Tehničke podatke i logove koristimo da bismo zaštitili nalog (npr. ograničenje pokušaja prijave) i otklonili greške (legitimni interes, ZZPL čl. 12 st. 1 tač. 6).
 </p>
 
@@ -75,6 +76,7 @@
 <h2>7. Koliko dugo čuvamo podatke</h2>
 <ul>
     <li>Podatke naloga, obaveznika i transakcije čuvamo dok imate nalog. Kada nalog obrišete, brišu se odmah i trajno.</li>
+    <li>Poruke podrške sa prilozima i ocene zadovoljstva čuvamo uz nalog dok ga imate i brišu se zajedno sa njim. Kopija poruke koja stigne u sanduče podrške čuva se dok je potrebna za odgovor, a na vaš zahtev je brišemo.</li>
     <li>Privremeni fajl CSV izvoda briše se po završetku uvoza, a najkasnije posle 24 sata.</li>
     <li>Sistemski logovi se čuvaju do {{ config('pravno.rok_logova_dana') }} dana.</li>
     <li>Rezervne kopije baze se čuvaju do {{ config('pravno.rok_rezervnih_kopija_dana') }} dana. Obrisani podaci u njima nestaju kada kopija istekne i iz njih se ne vraćaju.</li>

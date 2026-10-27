@@ -1,0 +1,27 @@
+# Redosled primene SQL fajlova na praznu bazu broker_porez (MariaDB).
+# Isti redosled koristi tests/Baza/PripremaBaze.php kada pravi test bazu, pa svaki novi sql/ fajl ide ovde,
+# na kraj, inače ga testovi ne vide (tests/Unit/RedosledSqlTest proverava da nijedan nije izostavljen).
+#
+# Red sa ! na početku je fajl koji postoji, a ne primenjuje se (uz razlog u komentaru).
+
+sql/broker_proezi_create_tables.sql
+sql/auth/korisnici_verifikacija.sql
+sql/auth/reset_lozinke.sql
+sql/auth/google_oauth.sql
+sql/porezi/porezi_dopune.sql
+sql/porezi/poreski_obaveznik.sql
+sql/porezi/opstina_prebivalista.sql
+sql/porezi/tekuci_racun_pasos.sql
+sql/uvoz/izvori_uvoza.sql
+sql/pravno/privatnost.sql
+sql/pravno/obavestenje_uslova.sql
+sql/podrska/podrska.sql
+sql/podrska/zadovoljstvo.sql
+sql/baza/vremenska_zona_utc.sql
+sql/session/laravel_session_table_create.sql
+sql/cache/laravel_cache_table_create.sql
+
+# starija kopija sql/auth/korisnici_verifikacija.sql (isti ALTER i verifikacioni_kodovi)
+!sql/broker_proezi_create_tables_2.sql
+# snimak šeme produkcije, ne migracija
+!sql/prod/broker_porez_create_tables_1.sql

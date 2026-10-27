@@ -4,21 +4,17 @@ namespace Tests\Feature;
 
 use App\Models\Korisnik;
 use App\Models\SablonUvoza;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Testing\TestResponse;
-use PHPUnit\Framework\Attributes\RequiresPhpExtension;
-use Tests\Feature\Concerns\DomenskeTabele;
+use Tests\Feature\Concerns\TestBaza;
 use Tests\TestCase;
 
-#[RequiresPhpExtension('pdo_sqlite')]
 class UvozRucniTest extends TestCase
 {
-    use DomenskeTabele;
-    use RefreshDatabase;
+    use TestBaza;
 
     private const CSV = <<<'CSV'
         Izvod brokera X
@@ -34,7 +30,6 @@ class UvozRucniTest extends TestCase
     {
         parent::setUp();
 
-        $this->napraviDomenskeTabele();
         $this->withoutVite();
         Storage::fake('local');
         // Kurs se ne preuzima u testu: transakcije ostaju bez kursa (kurs = NULL).

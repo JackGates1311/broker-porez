@@ -5,28 +5,31 @@ namespace Tests\Feature;
 use App\Support\Tabela\Kolona;
 use App\Support\Tabela\Tabela;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use PHPUnit\Framework\Attributes\RequiresPhpExtension;
+use Tests\Feature\Concerns\TestBaza;
 use Tests\TestCase;
 
-#[RequiresPhpExtension('pdo_sqlite')]
 class TabelaPretragaTest extends TestCase
 {
-    use RefreshDatabase;
+    use TestBaza;
 
     protected function setUp(): void
     {
         parent::setUp();
 
+        // Probna tabela za opštu pretragu (nije domenska). TEMPORARY: obična CREATE TABLE bi u MariaDB-u
+        // potvrdila transakciju testa; privremena tabela važi samo za ovu konekciju i ne menja šemu.
+        DB::statement('DROP TEMPORARY TABLE IF EXISTS stavke');
         Schema::create('stavke', function (Blueprint $tabela) {
+            $tabela->temporary();
             $tabela->id();
             $tabela->string('simbol');
             $tabela->integer('broj');
             $tabela->decimal('iznos', 28, 10)->nullable();
             $tabela->dateTime('vreme_utc');
             $tabela->string('akcija');
+            $tabela->collation('utf8mb4_general_ci');
         });
 
         DB::table('stavke')->insert([
@@ -50,6 +53,15 @@ class TabelaPretragaTest extends TestCase
         // OR preko kolona: "7" je broj kod dve stavke.
         $this->assertSame(['10%_X', 'AAPL'], $this->simboli(['q' => '7']));
         $this->assertSame([], $this->simboli(['q' => 'nepostoji']));
+    }
+
+    public function test_tekst_se_trazi_bez_razlike_kvacica_i_velikih_slova(): void
+    {
+        // utf8mb4_general_ci kao u sql/ šemi: „petrovic” nalazi „Petrović” (SQLite to nije umeo).
+        DB::table('stavke')->insert(['simbol' => 'Petrović DOO', 'broj' => 1, 'iznos' => '1', 'vreme_utc' => '2026-01-01 10:00:00', 'akcija' => 'Deposit']);
+
+        $this->assertSame(['Petrović DOO'], $this->simboli(['q' => 'petrovic']));
+        $this->assertSame(['Petrović DOO'], $this->simboli(['q' => 'PETROVIĆ']));
     }
 
     public function test_sortiranje_jedna_i_vise_kolona_null_na_kraju(): void

@@ -3,42 +3,21 @@
 namespace Tests\Feature;
 
 use App\Models\Korisnik;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
-use PHPUnit\Framework\Attributes\RequiresPhpExtension;
-use Tests\Feature\Concerns\DomenskeTabele;
+use Illuminate\Support\Facades\Storage;
+use Tests\Feature\Concerns\TestBaza;
 use Tests\TestCase;
 
-#[RequiresPhpExtension('pdo_sqlite')]
 class NalogTest extends TestCase
 {
-    use DomenskeTabele;
-    use RefreshDatabase;
+    use TestBaza;
 
     private Korisnik $korisnik;
 
     protected function setUp(): void
     {
         parent::setUp();
-
-        $this->napraviDomenskeTabele();
-
-        Schema::create('verifikacioni_kodovi', function (Blueprint $tabela) {
-            $tabela->id();
-            $tabela->unsignedInteger('korisnik_id');
-            $tabela->string('kod_hash');
-            $tabela->timestamp('istice_at');
-        });
-
-        Schema::create('tokeni_reset_lozinke', function (Blueprint $tabela) {
-            $tabela->id();
-            $tabela->unsignedInteger('korisnik_id');
-            $tabela->string('token_hash', 64);
-            $tabela->timestamp('istice_at');
-        });
 
         $this->withoutVite();
         $this->korisnik = $this->spremanKorisnik();
@@ -61,6 +40,18 @@ class NalogTest extends TestCase
             'valuta_ukupno' => 'USD',
             'jedinstveni_kljuc' => str_pad($kljuc, 64, '0'),
         ]);
+    }
+
+    private function dodajPorukuPodrske(Korisnik $korisnik): string
+    {
+        $poruka = $korisnik->porukePodrske()->create(['naslov' => 'Greška', 'poruka' => 'Uvoz pada.']);
+        $putanja = "podrska/{$poruka->id}/prilog.txt";
+        Storage::disk('local')->put($putanja, 'sadržaj');
+        $poruka->prilozi()->create([
+            'korisnik_id' => $korisnik->id, 'naziv' => 'log.txt', 'putanja' => $putanja, 'mime' => 'text/plain', 'velicina' => 9,
+        ]);
+
+        return $putanja;
     }
 
     public function test_meni_naloga_vodi_na_odjavu_i_pravne_strane(): void
@@ -142,6 +133,11 @@ class NalogTest extends TestCase
         $this->dodajTransakciju($this->korisnik, '1');
         $this->dodajTransakciju($drugi, '2');
         $this->korisnik->sabloniUvoza()->create(['naziv' => 'Moj broker', 'podesavanja' => ['separator' => ';']]);
+        Storage::fake('local');
+        $this->dodajPorukuPodrske($this->korisnik);
+        $this->dodajPorukuPodrske($drugi);
+        $this->korisnik->oceneZadovoljstva()->create(['ocena' => 4, 'komentar' => 'Dobro.', 'povod' => 'ppdg-3r-xml']);
+        $drugi->oceneZadovoljstva()->create(['ocena' => 1, 'povod' => 'pp-opo-pdf']);
 
         $odgovor = $this->actingAs($this->korisnik)->get(route('nalog.izvoz'))->assertOk();
 
@@ -151,7 +147,13 @@ class NalogTest extends TestCase
             ->assertJsonPath('transakcije.0.isin', 'US0000000001')
             ->assertJsonCount(1, 'transakcije')
             ->assertJsonPath('sabloni_uvoza.0.podesavanja.separator', ';')
-            ->assertJsonMissingPath('transakcije.0.korisnik_id');
+            ->assertJsonMissingPath('transakcije.0.korisnik_id')
+            ->assertJsonCount(1, 'poruke_podrske')
+            ->assertJsonPath('poruke_podrske.0.poruka', 'Uvoz pada.')
+            ->assertJsonPath('poruke_podrske.0.prilozi', ['log.txt'])
+            ->assertJsonCount(1, 'ocene_zadovoljstva')
+            ->assertJsonPath('ocene_zadovoljstva.0.ocena', 4)
+            ->assertJsonPath('ocene_zadovoljstva.0.povod', 'ppdg-3r-xml');
     }
 
     public function test_pogresna_potvrda_ne_brise_nalog(): void
@@ -170,9 +172,10 @@ class NalogTest extends TestCase
         $this->dodajTransakciju($this->korisnik, '1');
         $this->dodajTransakciju($drugi, '2');
         $this->korisnik->sabloniUvoza()->create(['naziv' => 'Moj broker', 'podesavanja' => []]);
-        $transakcijaId = DB::table('transakcije')->where('korisnik_id', $this->korisnik->id)->value('id');
+        $transakcija = DB::table('transakcije')->where('korisnik_id', $this->korisnik->id)->first();
+        $transakcijaId = $transakcija->id;
         $lotId = DB::table('poreski_lotovi')->insertGetId([
-            'korisnik_id' => $this->korisnik->id, 'transakcija_kupovine_id' => $transakcijaId, 'imovina_id' => 1,
+            'korisnik_id' => $this->korisnik->id, 'transakcija_kupovine_id' => $transakcijaId, 'imovina_id' => $transakcija->imovina_id,
             'pocetna_kolicina' => '2', 'preostala_kolicina' => '1', 'nabavna_cena_po_jedinici' => '10000',
         ]);
         DB::table('alokacije_lotova_prodaje')->insert([
@@ -181,6 +184,10 @@ class NalogTest extends TestCase
         ]);
         DB::table('verifikacioni_kodovi')->insert(['korisnik_id' => $this->korisnik->id, 'kod_hash' => 'x', 'istice_at' => now()]);
         DB::table('tokeni_reset_lozinke')->insert(['korisnik_id' => $this->korisnik->id, 'token_hash' => 'y', 'istice_at' => now()]);
+        Storage::fake('local');
+        $prilog = $this->dodajPorukuPodrske($this->korisnik);
+        $prilogDrugog = $this->dodajPorukuPodrske($drugi);
+        $this->korisnik->oceneZadovoljstva()->create(['ocena' => 4, 'povod' => 'ppdg-3r-xml']);
 
         $this->actingAs($this->korisnik)
             ->delete(route('nalog.obrisi'), ['potvrda_emaila' => ' Pera@Example.com '])
@@ -190,13 +197,16 @@ class NalogTest extends TestCase
         $this->assertGuest();
         $this->assertNull(Korisnik::find($this->korisnik->id));
 
-        foreach (['transakcije', 'poreski_lotovi', 'alokacije_lotova_prodaje', 'sabloni_uvoza', 'poreski_obaveznik', 'verifikacioni_kodovi', 'tokeni_reset_lozinke'] as $tabela) {
+        foreach (['transakcije', 'poreski_lotovi', 'alokacije_lotova_prodaje', 'sabloni_uvoza', 'poreski_obaveznik', 'verifikacioni_kodovi', 'tokeni_reset_lozinke', 'poruke_podrske', 'prilozi_poruka_podrske', 'ocene_zadovoljstva'] as $tabela) {
             $this->assertSame(0, DB::table($tabela)->where('korisnik_id', $this->korisnik->id)->count(), $tabela);
         }
 
         // Drugi korisnik ostaje netaknut.
         $this->assertSame(1, DB::table('transakcije')->where('korisnik_id', $drugi->id)->count());
         $this->assertNotNull($drugi->poreskiObaveznik()->first());
+        Storage::disk('local')->assertMissing($prilog);
+        Storage::disk('local')->assertExists($prilogDrugog);
+        $this->assertSame(1, DB::table('poruke_podrske')->where('korisnik_id', $drugi->id)->count());
 
         $zapis = DB::table('obrisani_nalozi')->sole();
         $this->assertSame(now()->format('Y-m'), $zapis->registrovan_mesec);

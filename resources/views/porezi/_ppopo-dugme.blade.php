@@ -6,7 +6,7 @@
 <span class="d-inline-flex flex-nowrap align-items-center">
 <span class="d-inline-block" title="{{ $opis }}">
     <button type="submit" form="ppopo-forma" class="preuzmi-pdf btn btn-sm border-0 p-1 lh-1"
-            formaction="{{ route('izvoz.pp-opo', $red->transakcija->id) }}"
+            formaction="{{ route('izvoz.pp-opo', $red->transakcija->id) }}" data-izvoz-obrasca="pp-opo-pdf"
             aria-label="{{ $opis }}"
             @disabled($red->bez_kursa)>
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-filetype-pdf" viewBox="0 0 16 16" aria-hidden="true">
@@ -16,7 +16,7 @@
 </span>
 <span class="d-inline-block" title="{{ $opisXml }}">
     <button type="submit" form="ppopo-forma" class="preuzmi-pdf btn btn-sm border-0 p-1 lh-1"
-            formaction="{{ route('izvoz.pp-opo.xml', $red->transakcija->id) }}"
+            formaction="{{ route('izvoz.pp-opo.xml', $red->transakcija->id) }}" data-izvoz-obrasca="pp-opo-xml"
             aria-label="{{ $opisXml }}"
             @disabled($red->bez_kursa)>
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-filetype-xml" viewBox="0 0 16 16" aria-hidden="true">

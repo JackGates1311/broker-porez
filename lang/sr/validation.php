@@ -56,6 +56,7 @@ return [
     'required_if' => 'Polje :attribute je obavezno kada je :other :value.',
     'string' => 'Polje :attribute mora biti tekst.',
     'unique' => 'Uneto :attribute je već zauzeto.',
+    'uploaded' => 'Fajl u polju :attribute nije uspešno otpremljen.',
 
     'values' => [
         'tip_obaveznika' => [
@@ -66,6 +67,7 @@ return [
 
     'attributes' => [
         'adresa' => 'adresa',
+        'akcija' => 'akcija',
         'broj_pasosa' => 'broj pasoša',
         'akcije' => 'akcije',
         'akcije.*.tip' => 'tip transakcije',
@@ -86,6 +88,13 @@ return [
         'kolone' => 'kolone',
         'korisnicko_ime' => 'korisničko ime',
         'lozinka' => 'lozinka',
+        'naslov' => 'naslov',
+        'ocena' => 'ocena',
+        'komentar' => 'komentar',
+        'povod' => 'povod',
+        'poruka' => 'poruka',
+        'prilozi' => 'prilozi',
+        'prilozi.*' => 'prilog',
         'nacin_ostvarivanja' => 'način ostvarivanja',
         'naziv_sablona' => 'naziv šablona',
         'osnov_za_prijavu' => 'osnov za prijavu',

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EmailVerifikovan;
+use App\Http\Middleware\Insajder;
 use App\Http\Middleware\PoreskiObaveznikPopunjen;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -17,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'verifikovan' => EmailVerifikovan::class,
             'obaveznik' => PoreskiObaveznikPopunjen::class,
+            'insajder' => Insajder::class,
         ]);
 
         $middleware->redirectGuestsTo(fn () => route('prijava'));

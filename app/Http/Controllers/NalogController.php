@@ -48,6 +48,22 @@ class NalogController extends Controller
         return redirect()->route('nalog')->with('status', 'Korisničko ime je promenjeno.');
     }
 
+    /**
+     * Korisnik sam uključuje ili isključuje widget za povratne informacije (korisnici.is_insajder).
+     */
+    public function insajder(Request $request): RedirectResponse
+    {
+        $ukljuci = $request->validate(['insajder' => ['required', 'boolean']])['insajder'];
+
+        /** @var Korisnik $korisnik */
+        $korisnik = $request->user();
+        $korisnik->forceFill(['is_insajder' => (bool) $ukljuci])->save();
+
+        return redirect()->route('nalog')->with('status', $korisnik->jeInsajder()
+            ? 'Dugme „Povratna informacija” je uključeno, nalazi se u donjem desnom uglu.'
+            : 'Dugme „Povratna informacija” je isključeno.');
+    }
+
     public function izvoz(Request $request, BrisanjeNalogaService $servis): JsonResponse
     {
         /** @var Korisnik $korisnik */

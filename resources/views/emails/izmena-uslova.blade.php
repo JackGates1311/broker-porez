@@ -15,7 +15,7 @@
                                 <h1 style="font-size:20px;margin:0 0 16px;">Zdravo, {{ $korisnik->korisnicko_ime }}!</h1>
                                 <p style="margin:0 0 16px;">
                                     Menjamo Uslove korišćenja i Politiku privatnosti za {{ config('app.name') }}.
-                                    Nova verzija stupa na snagu <strong>{{ $vaziOd }}</strong>.
+                                    Nova verzija stupa na snagu <strong>{{ $vaziOd }}</strong>
                                 </p>
                                 @if ($izmene !== [])
                                     <p style="margin:0 0 8px;">Šta se menja:</p>

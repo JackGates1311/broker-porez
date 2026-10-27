@@ -4,24 +4,19 @@ namespace Tests\Feature;
 
 use App\Models\Kurs;
 use App\Services\Kursevi\NbsKursService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
-use PHPUnit\Framework\Attributes\RequiresPhpExtension;
-use Tests\Feature\Concerns\DomenskeTabele;
+use Tests\Feature\Concerns\TestBaza;
 use Tests\TestCase;
 
-#[RequiresPhpExtension('pdo_sqlite')]
 class NbsKursServiceTest extends TestCase
 {
-    use DomenskeTabele;
-    use RefreshDatabase;
+    use TestBaza;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->napraviDomenskeTabele();
     }
 
     public function test_preuzima_datume_koji_nedostaju_a_neuspesne_vraca(): void

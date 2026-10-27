@@ -23,8 +23,17 @@
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>
         <env name="CACHE_STORE" value="array"/>
-        <env name="DB_CONNECTION" value="sqlite"/>
-        <env name="DB_DATABASE" value=":memory:"/>
+        <!-- Ključ samo za testove (šifrovana polja obaveznika); produkcija ima svoj u .env. -->
+        <env name="APP_KEY" value="base64:dXQNLD26mUHT/d+YQuVOKuktqI1Jl/gn9dhXxaeugRQ="/>
+        <!-- MariaDB 10.11 kao na produkciji, šema iz sql/ fajlova (Tests\Baza\PripremaBaze).
+             Lokalno: docker/test/testovi.sh baza. Prave promenljive okruženja
+             (npr. DB_HOST iz testovi.sh) imaju prednost nad ovim vrednostima. -->
+        <env name="DB_CONNECTION" value="mysql"/>
+        <env name="DB_HOST" value="127.0.0.1"/>
+        <env name="DB_PORT" value="13306"/>
+        <env name="DB_DATABASE" value="broker_porez_test"/>
+        <env name="DB_USERNAME" value="root"/>
+        <env name="DB_PASSWORD" value="test"/>
         <env name="DB_URL" value=""/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
