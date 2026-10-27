@@ -1,0 +1,139 @@
+BrokerPorez – Laravel scheduler (zakazani zadaci)
+================================================
+
+Kako radi
+---------
+
+Cron na serveru svake minute pokreće jednu komandu:
+
+    php artisan schedule:run
+
+Laravel tada pogleda spisak zadataka u routes/console.php i pokrene one kojima je
+upravo došlo vreme. Zato u crontab ide samo jedan red, a svi zadaci, njihova
+učestalost i vremenska zona su u kodu (u git-u, idu sa deploy-om).
+
+  cron (svake minute)  ->  php artisan schedule:run  ->  zadaci iz routes/console.php
+
+
+Postavka na serveru (već urađeno 27.10.2026)
+--------------------------------------------
+
+Cron radi kao www-data, korisnik pod kojim radi PHP-FPM. Ne kao root: log fajl koji
+napravi root PHP-FPM posle ne može da piše, pa sajt počinje da vraća greške.
+
+    crontab -u www-data -e
+
+    # BrokerPorez: Laravel scheduler (zadaci su u routes/console.php)
+    * * * * * cd /var/www/broker_porez && php artisan schedule:run >> /dev/null 2>&1
+
+Provera da cron stvarno pokreće scheduler (red za www-data svake minute):
+
+    grep CRON /var/log/syslog | grep www-data | tail -3
+
+
+Trenutni zadaci
+---------------
+
+  zadovoljstvo:izvestaj --mejl    1. u mesecu u 08:00 (Europe/Belgrade)
+                                  mesečni izveštaj zadovoljstva insajdera na PODRSKA_EMAIL;
+                                  prazan mesec ne šalje mejl
+
+Opis komandi: docs/php_artisan_custom_commands.txt
+
+
+Komande za upravljanje
+----------------------
+
+Na serveru se sve pokreće kao www-data, iz /var/www/broker_porez:
+
+    sudo -u www-data php artisan <komanda>
+
+  schedule:list        Spisak zadataka i kada je sledeće pokretanje.
+                       Vreme je prikazano u zoni servera (UTC), pa zadatak u 08:00
+                       po beogradskom vremenu piše "0 7" zimi i "0 6" leti.
+
+  schedule:test        Pokreće izabrani zadatak odmah (pita koji), bez čekanja na
+                       njegovo vreme. Pazi: zadovoljstvo:izvestaj --mejl tada stvarno
+                       šalje mejl. Za probu bez mejla pokreni samu komandu:
+                       php artisan zadovoljstvo:izvestaj --period=ovaj-mesec
+
+  schedule:run         Ono što cron radi svake minute; ručno se skoro nikad ne pokreće.
+
+  schedule:pause       Privremeno zaustavlja sve zadatke (cron i dalje radi, ali
+  schedule:resume      schedule:run ništa ne pokreće), pa ponovo uključuje.
+                       Pauza se čuva u kešu (tabela cache), a deploy skripta radi
+                       php artisan cache:clear, pa SVAKI DEPLOY PONIŠTAVA PAUZU.
+                       Za trajno isključivanje zadatka obriši ga iz routes/console.php.
+
+  schedule:interrupt   Prekida zadatke koji se trenutno izvršavaju.
+
+  schedule:clear-cache Briše zaključavanja (mutex) zadataka sa withoutOverlapping(),
+                       ako je neki "zaglavljen" posle pada servera.
+
+  schedule:work        Samo za lokalni razvoj: radi u terminalu i svake minute pokreće
+                       schedule:run, umesto cron-a. Prekida se sa Ctrl+C.
+
+
+Dodavanje novog zadatka
+-----------------------
+
+1. Zadatak je obična artisan komanda (app/Console/Commands, vidi
+   docs/php_artisan_custom_commands.txt).
+2. U routes/console.php dodati red, npr.:
+
+    use Illuminate\Support\Facades\Schedule;
+
+    Schedule::command('podrska:posalji-neposlate')->hourly();
+
+    Schedule::command('zadovoljstvo:izvestaj --mejl')
+        ->monthlyOn(1, '08:00')
+        ->timezone('Europe/Belgrade');
+
+3. Lokalno proveriti: php artisan schedule:list
+4. Deploy. Crontab se ne menja: cron već svake minute pita scheduler šta da radi.
+5. Na serveru proveriti: sudo -u www-data php artisan schedule:list
+
+Česte učestalosti:
+
+    ->everyMinute()            ->everyFiveMinutes()        ->everyFifteenMinutes()
+    ->hourly()                 ->hourlyAt(17)              ->daily()
+    ->dailyAt('03:00')         ->weeklyOn(1, '08:00')      ->monthlyOn(1, '08:00')
+    ->cron('0 8 * * 1-5')      (radnim danima u 08:00)
+
+Korisne dopune:
+
+    ->timezone('Europe/Belgrade')     vreme po beogradskom, a ne po UTC-u servera
+                                      (staviti uz svaki zadatak sa tačnim satom)
+    ->withoutOverlapping()            ne pokreće novi dok prethodni još radi
+                                      (za duže zadatke, npr. slanje više mejlova)
+    ->appendOutputTo(storage_path('logs/scheduler.log'))
+                                      čuva ispis komande, za proveru šta je uradila
+    ->environments(['production'])    radi samo na produkciji
+
+Napomena za mejl: zadaci koji šalju mejl troše istu Brevo kvotu kao kodovi za
+potvrdu adrese i reset lozinke, pa ih ne zakazivati češće nego što treba.
+
+
+Rešavanje problema
+------------------
+
+Zadatak se ne pokreće:
+  - crontab -u www-data -l          da li cron red postoji
+  - grep CRON /var/log/syslog       da li cron pokreće schedule:run svake minute
+  - sudo -u www-data php artisan schedule:list   da li je zadatak na spisku i kada
+  - da li je scheduler pauziran (schedule:pause): sudo -u www-data php artisan schedule:resume
+  - systemctl is-active cron        da li cron servis radi
+
+Zadatak se pokreće, ali pada:
+  - pokrenuti istu komandu ručno, kao www-data, i pročitati grešku:
+    sudo -u www-data php artisan zadovoljstvo:izvestaj --period=ovaj-mesec
+  - tail -n 50 storage/logs/laravel-$(date +%F).log
+
+Greška "Permission denied" za storage/logs:
+  - neko je pokrenuo artisan kao root i napravio log fajl; ispravka:
+    chown -R www-data:www-data /var/www/broker_porez/storage /var/www/broker_porez/bootstrap/cache
+  - deploy to sam radi na kraju (chown u .github/workflows/deploy.yml)
+
+Lokalni razvoj:
+  - php artisan schedule:work u posebnom terminalu (cron lokalno nije potreban)
+  - php artisan schedule:list

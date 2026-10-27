@@ -132,6 +132,7 @@ Zakazane komande (routes/console.php)
     * * * * * cd /putanja/do/aplikacije && php artisan schedule:run >> /dev/null 2>&1
 
   Provera plana:  php artisan schedule:list
+  Detaljno o scheduler-u (komande, pauza, novi zadaci, rešavanje problema): docs/laravel_scheduler.txt
 
 Ostalo u routes/console.php:
   inspire – Laravelov primer, ne pripada projektu i može da se obriše.
