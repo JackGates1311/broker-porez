@@ -109,20 +109,34 @@ Napomene za ovaj projekat
     GOOGLE_API_KEY, semantički deo radi Gemini umesto Claude subagenata.
 
 
-Provera zastarelog grafa (hook)
--------------------------------
+Dozvola i provera zastarelog grafa (hookovi)
+--------------------------------------------
 
-Graf se ne osvežava sam, pa star graf može da navede Claude-a na pogrešan
-zaključak (ne vidi nove klase, a obrisane još postoje). Zato projekat ima hook:
+  .claude/settings.json                 UserPromptSubmit + PreToolUse hook
+                                        (Bash, Read, Grep, Skill)
+  .claude/hooks/graphify_provera.py     obe provere
+  .claude/.graphify_dozvola             dozvola za tekući prompt (lokalno, .gitignore)
 
-  .claude/settings.json                 PreToolUse hook (Bash, Read, Grep)
-  .claude/hooks/graphify_provera.py     provera
+1) Dozvola. Claude ne sme da koristi graphify na svoju ruku. Pre svakog
+korišćenja (graphify skill, graphify CLI, Python modul graphify, čitanje
+graph.json / GRAPH_REPORT.md) poziv se odbija dok korisnik ne odobri, a Claude
+pita: "Ne koristi graphify" ili "Koristi graphify" (ako je graf zastareo, umesto
+toga: "Ažuriraj graf pa koristi" / "Koristi zastareo graf").
+  - Dozvola važi samo za tekući prompt: svaki novi prompt je briše.
+  - Kad korisnik sam kuca /graphify ..., to je već dozvola i pitanje se ne
+    postavlja.
+  - Samo pominjanje (git add docs/graphify.txt, grep graphify, rm -rf
+    graphify-out) se ne računa kao korišćenje.
+  - Dozvolu upisuje Claude posle odgovora korisnika; hook ga uputstvom obavezuje
+    da pita, ali tehnički ne može da razlikuje upis posle pitanja od upisa bez
+    njega.
 
-Svaki put kad Claude čita graf (graphify query/path/explain/affected/god-nodes,
-ili graph.json / GRAPH_REPORT.md), hook uporedi fajlove projekta sa
-graphify-out/manifest.json (isti skup fajlova koji graphify obrađuje, sadržaj po
-md5). Ako se nešto razlikuje, poziv se odbija, prikazuje se upozorenje sa spiskom
-izmenjenih, novih i obrisanih fajlova, i Claude pita šta dalje:
+2) Zastarelost. Graf se ne osvežava sam, pa star graf može da navede Claude-a na
+pogrešan zaključak (ne vidi nove klase, a obrisane još postoje). Kad Claude čita
+graf, hook uporedi fajlove projekta sa graphify-out/manifest.json (isti skup
+fajlova koji graphify obrađuje, sadržaj po md5). Ako se nešto razlikuje, poziv se
+odbija, prikazuje se upozorenje sa spiskom izmenjenih, novih i obrisanih fajlova,
+i Claude pita šta dalje (ako to nije već pitao uz dozvolu):
 
   1. Ažuriraj graf     /graphify . --update, pa isti upit
   2. Ipak koristi graf otisak trenutnih razlika se upisuje u

@@ -58,3 +58,6 @@ Thumbs.db
 
 # graphify graf znanja (docs/graphify.txt), lokalno, ne deli se
 /graphify-out/
+
+# lokalna dozvola za graphify (.claude/hooks/graphify_provera.py)
+/.claude/.graphify_*

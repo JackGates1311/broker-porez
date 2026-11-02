@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
-"""PreToolUse hook: pre čitanja graphify grafa proverava da li je zastareo (docs/graphify.txt).
+"""Hookovi za graphify (docs/graphify.txt): dozvola korisnika i provera zastarelog grafa.
 
-Graf je zastareo ako se fajlovi projekta razlikuju od graphify-out/manifest.json (izmenjen
-sadržaj, nov ili obrisan fajl). Tada se poziv odbija, a Claude pita korisnika: ažuriraj graf,
-ipak koristi graf ili preskoči graf. "Ipak koristi" upisuje otisak trenutnih razlika u
-graphify-out/.provera_prihvacena, pa se isto pitanje ne ponavlja dok se kod opet ne promeni.
+UserPromptSubmit (argument --prompt): svaki novi prompt briše dozvolu za graphify, osim
+kada korisnik sam kuca /graphify, što je već izričita dozvola.
 
-Bez grafa, za druge komande i pri bilo kakvoj grešci hook ne radi ništa (poziv prolazi).
+PreToolUse: pre korišćenja graphify-ja (graphify skill, graphify query/path/..., čitanje
+graph.json / GRAPH_REPORT.md) poziv se odbija dok korisnik u ovom promptu ne odobri graphify.
+Claude ga tada pita (AskUserQuestion) i, ako je zastareo, odmah nudi i ažuriranje grafa.
+Sa dozvolom se još proverava da li je graf zastareo u odnosu na graphify-out/manifest.json;
+"ipak koristi" upisuje otisak razlika u graphify-out/.provera_prihvacena.
+
+Za druge komande i pri bilo kakvoj grešci hook ne radi ništa (poziv prolazi).
 """
 
 import hashlib
@@ -16,35 +20,39 @@ import subprocess
 import sys
 from pathlib import Path
 
-GRAF = Path('graphify-out')
-PRIHVACENO = GRAF / '.provera_prihvacena'
-
-# Komande koje čitaju graf; izgradnja i ažuriranje grafa (to_json, update) se ne proveravaju.
+# Komande koje čitaju graf; izgradnja i ažuriranje grafa (to_json, update) se ne proveravaju na zastarelost.
 CITANJE = re.compile(r'\bgraphify\s+(query|path|explain|affected|god-nodes)\b')
 IZGRADNJA = re.compile(r'to_json\(|build_from_json|save_manifest|\bgraphify\s+(update|cluster-only|export)\b|--update')
 FAJLOVI_GRAFA = re.compile(r'graphify-out/(graph\.json|GRAPH_REPORT\.md)')
+# Stvarno pokretanje graphify-ja: CLI komanda (i posle ;, &&, |, $( ) ili Python modul. Samo pominjanje
+# (git add docs/graphify.txt, grep graphify) se ne računa.
+POKRECE_GRAPHIFY = re.compile(r'(^|[;&|(]|\$\()\s*graphify\s|\b(from|import)\s+graphify\b|-m\s+graphify\b')
 
 
-def cita_graf(ulaz: dict) -> bool:
+def vrsta_poziva(ulaz: dict) -> str | None:
+    """'citanje' (koristi postojeći graf), 'graphify' (ostalo: skill, izgradnja) ili None."""
     alat = ulaz.get('tool_name')
     parametri = ulaz.get('tool_input') or {}
 
+    if alat == 'Skill':
+        return 'graphify' if parametri.get('skill', '').split(':')[-1] == 'graphify' else None
+
     if alat == 'Bash':
         komanda = parametri.get('command', '')
-        if IZGRADNJA.search(komanda):
-            return False
-        return bool(CITANJE.search(komanda) or FAJLOVI_GRAFA.search(komanda))
+        if not IZGRADNJA.search(komanda) and (CITANJE.search(komanda) or FAJLOVI_GRAFA.search(komanda)):
+            return 'citanje'
+        return 'graphify' if POKRECE_GRAPHIFY.search(komanda) else None
 
     if alat in ('Read', 'Grep'):
         putanja = parametri.get('file_path') or parametri.get('path') or ''
-        return bool(FAJLOVI_GRAFA.search(putanja))
+        return 'citanje' if FAJLOVI_GRAFA.search(putanja) else None
 
-    return False
+    return None
 
 
-def trenutni_fajlovi(koren: Path) -> set[str]:
+def trenutni_fajlovi(koren: Path, graf: Path) -> set[str]:
     """Isti skup fajlova koji graphify obrađuje (detect sa njegovim izuzecima), relativne putanje."""
-    python = (GRAF / '.graphify_python').read_text(encoding='utf-8').strip()
+    python = (graf / '.graphify_python').read_text(encoding='utf-8').strip()
     skripta = (
         'import json\n'
         'from pathlib import Path\n'
@@ -62,9 +70,10 @@ def md5(putanja: Path) -> str:
     return hashlib.md5(putanja.read_bytes()).hexdigest()
 
 
-def razlike(koren: Path) -> tuple[list[str], list[str], list[str]]:
-    manifest = json.loads((GRAF / 'manifest.json').read_text(encoding='utf-8'))
-    sada = trenutni_fajlovi(koren)
+def zastarelost(koren: Path, graf: Path) -> tuple[str, str] | None:
+    """(opis razlika, otisak) ako se fajlovi razlikuju od manifesta; None ako je graf aktuelan."""
+    manifest = json.loads((graf / 'manifest.json').read_text(encoding='utf-8'))
+    sada = trenutni_fajlovi(koren, graf)
 
     izmenjeni = []
     for putanja, zapis in manifest.items():
@@ -77,10 +86,26 @@ def razlike(koren: Path) -> tuple[list[str], list[str], list[str]]:
         if md5(fajl) != (zapis.get('ast_hash') or zapis.get('semantic_hash')):
             izmenjeni.append(putanja)
 
+    izmenjeni.sort()
     novi = sorted(sada - manifest.keys())
     obrisani = sorted(p for p in manifest if p not in sada)
 
-    return sorted(izmenjeni), novi, obrisani
+    if not (izmenjeni or novi or obrisani):
+        return None
+
+    # Otisak uključuje i sadržaj, pa nova izmena već prijavljenog fajla opet traži odluku.
+    sadrzaj = {p: md5(koren / p) for p in izmenjeni + novi if (koren / p).is_file()}
+    otisak = hashlib.sha256(json.dumps([sadrzaj, obrisani], sort_keys=True).encode()).hexdigest()[:16]
+
+    ukupno = len(izmenjeni) + len(novi) + len(obrisani)
+    opis = (
+        f'Graphify graf je ZASTAREO: {ukupno} fajlova se razlikuje od stanja kada je graf napravljen.'
+        + spisak('izmenjeni', izmenjeni)
+        + spisak('novi', novi)
+        + spisak('obrisani', obrisani)
+    )
+
+    return opis, otisak
 
 
 def spisak(naslov: str, putanje: list[str]) -> str:
@@ -90,51 +115,77 @@ def spisak(naslov: str, putanje: list[str]) -> str:
     return f'\n  {naslov} ({len(putanje)}): {prikaz}'
 
 
-def main() -> None:
-    ulaz = json.load(sys.stdin)
-    koren = Path(ulaz.get('cwd') or '.').resolve()
-    global GRAF, PRIHVACENO
-    GRAF = koren / 'graphify-out'
-    PRIHVACENO = GRAF / '.provera_prihvacena'
-
-    if not cita_graf(ulaz) or not (GRAF / 'manifest.json').is_file() or not (GRAF / '.graphify_python').is_file():
-        return
-
-    izmenjeni, novi, obrisani = razlike(koren)
-    if not (izmenjeni or novi or obrisani):
-        return
-
-    # Otisak uključuje i sadržaj, pa nova izmena već prijavljenog fajla opet traži odluku.
-    sadrzaj = {p: md5(koren / p) for p in izmenjeni + novi if (koren / p).is_file()}
-    otisak = hashlib.sha256(json.dumps([sadrzaj, obrisani], sort_keys=True).encode()).hexdigest()[:16]
-    if PRIHVACENO.is_file() and PRIHVACENO.read_text(encoding='utf-8').strip() == otisak:
-        return
-
-    ukupno = len(izmenjeni) + len(novi) + len(obrisani)
-    opis = (
-        f'Graphify graf je ZASTAREO: {ukupno} fajlova se razlikuje od stanja kada je graf napravljen.'
-        + spisak('izmenjeni', izmenjeni)
-        + spisak('novi', novi)
-        + spisak('obrisani', obrisani)
-    )
-    uputstvo = (
-        '\n\nNe koristi graf pre odluke korisnika. Prikaži korisniku ovo upozorenje i pitaj ga '
-        '(AskUserQuestion) šta želi:\n'
-        '  1. "Ažuriraj graf": pokreni /graphify . --update (kod se čita besplatno, tokene troše samo '
-        'izmenjeni dokumenti), pa ponovi upit.\n'
-        f'  2. "Ipak koristi graf": izvrši `echo {otisak} > graphify-out/.provera_prihvacena`, pa ponovi '
-        'isti poziv; u odgovoru naglasi da graf ne vidi gore navedene izmene i proveri te fajlove u kodu.\n'
-        '  3. "Preskoči graf": odgovori bez grafa (Grep/Read nad kodom).'
-    )
-
+def odbij(poruka: str, uputstvo: str) -> None:
     print(json.dumps({
-        'systemMessage': opis,
+        'systemMessage': poruka,
         'hookSpecificOutput': {
             'hookEventName': 'PreToolUse',
             'permissionDecision': 'deny',
-            'permissionDecisionReason': opis + uputstvo,
+            'permissionDecisionReason': poruka + '\n\n' + uputstvo,
         },
     }, ensure_ascii=False))
+
+
+def na_prompt(ulaz: dict, dozvola: Path) -> None:
+    if ulaz.get('prompt', '').lstrip().startswith('/graphify'):
+        dozvola.parent.mkdir(parents=True, exist_ok=True)
+        dozvola.write_text('korisnik je pokrenuo /graphify\n', encoding='utf-8')
+    else:
+        dozvola.unlink(missing_ok=True)
+
+
+def pre_alata(ulaz: dict, koren: Path, dozvola: Path) -> None:
+    vrsta = vrsta_poziva(ulaz)
+    if vrsta is None:
+        return
+
+    graf = koren / 'graphify-out'
+    prihvaceno = graf / '.provera_prihvacena'
+    ima_graf = (graf / 'manifest.json').is_file() and (graf / '.graphify_python').is_file()
+    stanje = zastarelost(koren, graf) if ima_graf and vrsta == 'citanje' else None
+    dozvoli = 'mkdir -p .claude && touch .claude/.graphify_dozvola'
+
+    if not dozvola.is_file():
+        poruka = 'Claude želi da koristi graphify.' + (f'\n{stanje[0]}' if stanje else '')
+        opcije = (
+            '  1. "Ne koristi graphify": odgovori bez grafa (Grep/Read nad kodom) i ne pokušavaj graphify '
+            'ponovo u ovom promptu.\n'
+        )
+        if stanje:
+            opcije += (
+                f'  2. "Ažuriraj graf pa koristi": izvrši `{dozvoli}`, pokreni /graphify . --update, pa ponovi upit.\n'
+                f'  3. "Koristi zastareo graf": izvrši `{dozvoli} && echo {stanje[1]} > graphify-out/.provera_prihvacena`, '
+                'ponovi poziv i navedene fajlove proveri u kodu.'
+            )
+        else:
+            opcije += f'  2. "Koristi graphify": izvrši `{dozvoli}`, pa ponovi isti poziv.'
+        odbij(poruka, (
+            'Graphify se koristi samo uz izričitu dozvolu korisnika u ovom promptu. Pre bilo kakvog '
+            'korišćenja pitaj korisnika (AskUserQuestion) da li želi graphify i zašto bi pomogao; ne upisuj '
+            'dozvolu bez njegovog odgovora. Opcije:\n' + opcije
+        ))
+        return
+
+    if stanje and not (prihvaceno.is_file() and prihvaceno.read_text(encoding='utf-8').strip() == stanje[1]):
+        odbij(stanje[0], (
+            'Ne koristi graf pre odluke korisnika. Pitaj ga (AskUserQuestion) šta želi:\n'
+            '  1. "Ažuriraj graf": pokreni /graphify . --update (kod se čita besplatno, tokene troše samo '
+            'izmenjeni dokumenti), pa ponovi upit.\n'
+            f'  2. "Ipak koristi graf": izvrši `echo {stanje[1]} > graphify-out/.provera_prihvacena`, pa ponovi '
+            'isti poziv; u odgovoru naglasi da graf ne vidi gore navedene izmene i proveri te fajlove u kodu.\n'
+            '  3. "Preskoči graf": odgovori bez grafa (Grep/Read nad kodom).'
+        ))
+
+
+def main() -> None:
+    ulaz = json.load(sys.stdin)
+    koren = Path(ulaz.get('cwd') or '.').resolve()
+    dozvola = koren / '.claude' / '.graphify_dozvola'
+
+    if '--prompt' in sys.argv:
+        na_prompt(ulaz, dozvola)
+    else:
+        pre_alata(ulaz, koren, dozvola)
 
 
 if __name__ == '__main__':
