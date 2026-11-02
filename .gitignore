@@ -64,3 +64,6 @@ Thumbs.db
 
 # python .venv
 /.venv/
+
+# python bajtkod
+__pycache__/
