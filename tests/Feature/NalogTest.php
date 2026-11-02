@@ -153,7 +153,9 @@ class NalogTest extends TestCase
             ->assertJsonPath('poruke_podrske.0.prilozi', ['log.txt'])
             ->assertJsonCount(1, 'ocene_zadovoljstva')
             ->assertJsonPath('ocene_zadovoljstva.0.ocena', 4)
-            ->assertJsonPath('ocene_zadovoljstva.0.povod', 'ppdg-3r-xml');
+            ->assertJsonPath('ocene_zadovoljstva.0.povod', 'ppdg-3r-xml')
+            ->assertJsonCount(1, 'prihvatanja_uslova')
+            ->assertJsonPath('prihvatanja_uslova.0.verzija', config('pravno.verzija'));
     }
 
     public function test_pogresna_potvrda_ne_brise_nalog(): void
@@ -197,7 +199,7 @@ class NalogTest extends TestCase
         $this->assertGuest();
         $this->assertNull(Korisnik::find($this->korisnik->id));
 
-        foreach (['transakcije', 'poreski_lotovi', 'alokacije_lotova_prodaje', 'sabloni_uvoza', 'poreski_obaveznik', 'verifikacioni_kodovi', 'tokeni_reset_lozinke', 'poruke_podrske', 'prilozi_poruka_podrske', 'ocene_zadovoljstva'] as $tabela) {
+        foreach (['transakcije', 'poreski_lotovi', 'alokacije_lotova_prodaje', 'sabloni_uvoza', 'poreski_obaveznik', 'verifikacioni_kodovi', 'tokeni_reset_lozinke', 'poruke_podrske', 'prilozi_poruka_podrske', 'ocene_zadovoljstva', 'prihvatanja_uslova'] as $tabela) {
             $this->assertSame(0, DB::table($tabela)->where('korisnik_id', $this->korisnik->id)->count(), $tabela);
         }
 

@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Mail\IzmenaUslovaMail;
 use App\Models\Korisnik;
 use App\Support\Pravno;
+use Carbon\CarbonImmutable;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -15,9 +16,13 @@ use Throwable;
 #[Description('Šalje mejl o novoj verziji Uslova korišćenja i Politike privatnosti korisnicima koji još nisu obavešteni')]
 class ObavestiOIzmeniUslova extends Command
 {
+    /** Najmanje dana između obaveštenja i stupanja nove verzije na snagu. */
+    public const MIN_DANA_UNAPRED = 15;
+
     /**
      * Može da se pokreće više puta: obavešteni korisnik se pamti (uslovi_obavesten_verzija),
-     * pa sledeće pokretanje nastavlja od onih kojima mejl još nije poslat.
+     * pa sledeće pokretanje nastavlja od onih kojima mejl još nije poslat. Scheduler je pokreće
+     * svakog dana (routes/console.php), pa posle deploy-a nove verzije slanje kreće samo.
      */
     public function handle(): int
     {
@@ -37,11 +42,26 @@ class ObavestiOIzmeniUslova extends Command
             ->orderBy('id');
 
         $ukupno = $upit->count();
+        // round: oko promene letnjeg računanja vremena razlika dva beogradska datuma nije ceo broj dana.
+        $danaDoStupanja = (int) round(CarbonImmutable::today('Europe/Belgrade')->diffInDays(Pravno::vaziOd(), false));
+        $kasno = $ukupno > 0 && $danaDoStupanja < self::MIN_DANA_UNAPRED;
+        $upozorenje = 'Do stupanja na snagu ('.Pravno::vaziOdPrikaz().") ostalo je {$danaDoStupanja} dana, a obaveštenje mora stići bar "
+            .self::MIN_DANA_UNAPRED." dana ranije. Pomerite 'vazi_od' u config/pravno.php.";
 
         if ($this->option('proba')) {
             $this->info("Za obaveštenje o verziji {$verzija} (važi od ".Pravno::vaziOdPrikaz()."): {$ukupno} korisnika. Ništa nije poslato.");
 
+            if ($kasno) {
+                $this->warn($upozorenje);
+            }
+
             return self::SUCCESS;
+        }
+
+        if ($kasno) {
+            $this->error($upozorenje.' Ništa nije poslato.');
+
+            return self::FAILURE;
         }
 
         $poslato = 0;

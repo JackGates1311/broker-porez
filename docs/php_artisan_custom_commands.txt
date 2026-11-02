@@ -58,16 +58,15 @@ Napomene:
   - Obavešteni korisnik se pamti u korisnici.uslovi_obavesten_verzija, pa sledeće
     pokretanje nastavlja od onih kojima mejl još nije poslat (npr. sutra, zbog limita).
   - Odbija da radi dok je 'izmene' u config/pravno.php prazno.
+  - Odbija da šalje (FAILURE, "Ništa nije poslato.") ako je do 'vazi_od' ostalo manje
+    od 15 dana (ObavestiOIzmeniUslova::MIN_DANA_UNAPRED). --proba tada samo upozori.
+    Kad nema kome da se šalje, rok se ne proverava i komanda uspeva.
   - Vraća FAILURE ako bar jedan mejl nije poslat.
+  - Zakazana je svakog dana u 09:00 sa --limit=200 (vidi ispod), pa se posle deploy-a
+    nove verzije ručno ne pokreće.
+  - "php artisan help pravno:obavesti --proba" samo ispisuje pomoć, ne pokreće komandu.
 
-Postupak kod izmene uslova:
-  1. U config/pravno.php povećati 'verzija', postaviti 'vazi_od' najmanje 15 dana
-     unapred i u 'izmene' ukratko navesti šta se menja.
-  2. Deploy.
-  3. php artisan pravno:obavesti --proba
-  4. php artisan pravno:obavesti
-  Do 'vazi_od' važi ranije prihvaćena verzija. Posle toga korisnik pre rada u knjizi
-  ponovo prihvata uslove na koraku Poreski obaveznik.
+Postupak kod izmene uslova: docs/nova_verzija_uslova.txt
 
 
 3. podrska:posalji-neposlate
@@ -127,6 +126,13 @@ Zakazane komande (routes/console.php)
       ->monthlyOn(1, '08:00')->timezone('Europe/Belgrade');
 
   Šalje mesečni izveštaj zadovoljstva za prethodni mesec, 1. u mesecu u 08:00.
+
+  Schedule::command('pravno:obavesti --limit=200')->dailyAt('09:00')->timezone('Europe/Belgrade')
+      ->withoutOverlapping()->emailOutputOnFailure(config('podrska.email'));
+
+  Šalje obaveštenje o novoj verziji uslova onima koji ga još nisu dobili, do 200 dnevno
+  (ostatak Brevo kvote ostaje za kodove za verifikaciju). Kad su svi obavešteni, ne šalje
+  ništa. Ako ne uspe (ili je rok kraći od 15 dana), ispis stiže mejlom na PODRSKA_EMAIL.
 
   Radi samo ako cron na serveru svake minute pokreće scheduler:
     * * * * * cd /putanja/do/aplikacije && php artisan schedule:run >> /dev/null 2>&1

@@ -233,6 +233,7 @@ class PoreskiObaveznikTest extends TestCase
         $korisnik = $this->korisnik->fresh();
         $this->assertSame(config('pravno.verzija'), $korisnik->uslovi_verzija);
         $this->assertNotNull($korisnik->uslovi_prihvaceni_at);
+        $this->assertSame([config('pravno.verzija')], $korisnik->prihvatanjaUslova()->pluck('verzija')->all());
 
         // Prihvaćeni uslovi se ne traže ponovo pri izmeni podataka.
         $this->actingAs($korisnik)
@@ -263,6 +264,10 @@ class PoreskiObaveznikTest extends TestCase
             ->put(route('poreski-obaveznik'), $this->ispravniPodaci())
             ->assertRedirect(route('pocetna'));
         $this->actingAs($korisnik->fresh())->get('/proba-obaveznik')->assertOk();
+
+        // Istorija prihvatanja (dokaz pristanka) čuva i staru i novu verziju.
+        $this->assertCount(2, $korisnik->prihvatanjaUslova()->get());
+        $this->assertSame('2099-01-01', $korisnik->prihvatanjaUslova()->orderByDesc('id')->value('verzija'));
     }
 
     public function test_nerezident_bez_boravista_cuva_punomocnika(): void

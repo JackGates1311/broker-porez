@@ -38,6 +38,12 @@ Trenutni zadaci
                                   mesečni izveštaj zadovoljstva insajdera na PODRSKA_EMAIL;
                                   prazan mesec ne šalje mejl
 
+  pravno:obavesti --limit=200     svakog dana u 09:00 (Europe/Belgrade)
+                                  obaveštenje o novoj verziji uslova, do 200 mejlova dnevno;
+                                  kad su svi obavešteni ne šalje ništa; neuspeh ili rok
+                                  kraći od 15 dana stiže mejlom na PODRSKA_EMAIL
+                                  (postupak: docs/nova_verzija_uslova.txt)
+
 Opis komandi: docs/php_artisan_custom_commands.txt
 
 
@@ -56,6 +62,7 @@ Na serveru se sve pokreće kao www-data, iz /var/www/broker_porez:
                        njegovo vreme. Pazi: zadovoljstvo:izvestaj --mejl tada stvarno
                        šalje mejl. Za probu bez mejla pokreni samu komandu:
                        php artisan zadovoljstvo:izvestaj --period=ovaj-mesec
+                       Isto važi za pravno:obavesti: za probu php artisan pravno:obavesti --proba
 
   schedule:run         Ono što cron radi svake minute; ručno se skoro nikad ne pokreće.
 

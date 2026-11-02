@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 
 #[Fillable(['korisnicko_ime', 'email', 'lozinka_hash', 'google_id'])]
 #[Hidden(['lozinka_hash', 'remember_token', 'google_id'])]
@@ -111,6 +112,14 @@ class Korisnik extends Authenticatable
     }
 
     /**
+     * @return HasMany<PrihvatanjeUslova, $this>
+     */
+    public function prihvatanjaUslova(): HasMany
+    {
+        return $this->hasMany(PrihvatanjeUslova::class, 'korisnik_id');
+    }
+
+    /**
      * @return HasMany<PorukaPodrske, $this>
      */
     public function porukePodrske(): HasMany
@@ -152,11 +161,18 @@ class Korisnik extends Authenticatable
         return Pravno::vaziPrihvacena($this->uslovi_verzija);
     }
 
+    /**
+     * Beleži prihvatanje važeće verzije: poslednje na nalogu, a svako u prihvatanja_uslova (dokaz pristanka).
+     */
     public function prihvatiUslove(): void
     {
-        $this->forceFill([
-            'uslovi_prihvaceni_at' => now(),
-            'uslovi_verzija' => Pravno::verzija(),
-        ])->save();
+        DB::transaction(function () {
+            $this->forceFill([
+                'uslovi_prihvaceni_at' => now(),
+                'uslovi_verzija' => Pravno::verzija(),
+            ])->save();
+
+            $this->prihvatanjaUslova()->create(['verzija' => Pravno::verzija()]);
+        });
     }
 }

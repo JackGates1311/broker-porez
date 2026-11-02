@@ -21,7 +21,7 @@
 
 <h2>2. Koje podatke obrađujemo</h2>
 <ul>
-    <li><strong>Podaci naloga:</strong> korisničko ime, email adresa, heš lozinke (lozinku ne znamo), datum registracije i potvrde email adrese, datum i verzija prihvaćenih uslova.</li>
+    <li><strong>Podaci naloga:</strong> korisničko ime, email adresa, heš lozinke (lozinku ne znamo), datum registracije i potvrde email adrese, datum i verzija svakog prihvatanja Uslova korišćenja i ove politike (istorija prihvatanja, kao dokaz pristanka).</li>
     <li><strong>Podaci poreskog obaveznika</strong> koje unosite za obrasce PPDG-3R i PP OPO: tip obaveznika, JMBG ili PIB, ime i prezime, prebivalište, opština, adresa, telefon, email, JMBG podnosioca, zemlja rezidentstva, JMBG/PIB punomoćnika, tekući račun i broj pasoša.</li>
     <li><strong>Transakcije</strong> iz CSV izvoda koje uvezete: datum i vreme, hartija (ISIN, oznaka, naziv), količina, cena, iznosi, porez po odbitku, provizije i valute, uz kurs NBS primenjen na svaku transakciju. Šabloni uvoza koje sačuvate.</li>
     <li><strong>Poruke podrške i ocene zadovoljstva</strong>, ako ste u Moj nalog uključili povratne informacije: naslov i tekst poruke, priloženi fajlovi (slike, PDF, TXT), adresa stranice sa koje ste poruku poslali i podaci o pregledaču, kao i ocena od 1 do 5, komentar i obrazac posle čijeg izvoza ste ocenili aplikaciju.</li>

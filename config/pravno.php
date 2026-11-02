@@ -7,11 +7,13 @@ return [
     | Uslovi korišćenja i Politika privatnosti
     |--------------------------------------------------------------------------
     |
-    | Verzija se pamti uz prihvatanje (korisnici.uslovi_verzija). Kada se tekst
-    | suštinski promeni (ne zbog slovnih grešaka):
-    |   1. povećajte 'verzija', postavite 'vazi_od' najmanje 15 dana unapred
-    |      i u 'izmene' ukratko navedite šta se menja;
-    |   2. posle deploy-a pokrenite php artisan pravno:obavesti (mejl svima).
+    | Verzija se pamti uz prihvatanje (korisnici.uslovi_verzija, a svako
+    | prihvatanje i u prihvatanja_uslova). Kada se tekst suštinski promeni
+    | (ne zbog slovnih grešaka), postupak je u docs/nova_verzija_uslova.txt:
+    |   1. promenite 'verzija', postavite 'vazi_od' najmanje 15 dana posle
+    |      sutrašnjeg dana i u 'izmene' ukratko navedite šta se menja;
+    |   2. lokalno php artisan pravno:obavesti --proba, pa push; scheduler
+    |      šalje mejl svima sledećeg jutra u 09:00 (do 200 dnevno).
     | Do 'vazi_od' važi i ranije prihvaćena verzija; posle toga korisnik pre
     | rada u knjizi ponovo prihvata uslove na koraku Poreski obaveznik.
     |
@@ -19,8 +21,8 @@ return [
 
     'verzija' => '2026-11-15',
 
-    // Datum stupanja na snagu (Y-m-d).
-    'vazi_od' => '2026-11-15',
+    // Datum stupanja na snagu (Y-m-d). Pomeren sa 15.11. jer obaveštenje nije poslato do 31.10.
+    'vazi_od' => '2026-11-20',
 
     // Kratak opis izmena u odnosu na prethodnu verziju, za mejl obaveštenja.
     'izmene' => [
@@ -28,6 +30,7 @@ return [
         'Novi obrađivač: Zoho Corporation B.V. (Holandija), sanduče podrške u koje stižu vaše poruke i iz kog vam odgovaramo.',
         'Brevo, pored sistemskih mejlova, sada prosleđuje i vaše poruke podrške u sanduče podrške.',
         'Email adresu koristimo i za odgovor na poruke koje nam pošaljete.',
+        'Čuvamo istoriju prihvatanja Uslova i Politike (verzija i vreme) kao dokaz pristanka.',
     ],
 
     // Rukovalac podacima o ličnosti (ZZPL čl. 23, GDPR čl. 13).

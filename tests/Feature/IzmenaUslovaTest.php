@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Mail\IzmenaUslovaMail;
 use App\Models\Korisnik;
 use Carbon\CarbonImmutable;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 use Tests\Feature\Concerns\TestBaza;
@@ -20,6 +21,8 @@ class IzmenaUslovaTest extends TestCase
 
         $this->withoutVite();
         Mail::fake();
+        // Dovoljno pre 05.11.2026. da obaveštenje stigne na vreme (ObavestiOIzmeniUslova::MIN_DANA_UNAPRED).
+        $this->travelTo(CarbonImmutable::parse('2026-10-01 12:00', 'Europe/Belgrade'));
         Route::middleware(['web', 'auth', 'verifikovan', 'obaveznik'])->get('/proba-uslovi', fn () => 'propusteno');
     }
 
@@ -88,6 +91,42 @@ class IzmenaUslovaTest extends TestCase
         $this->artisan('pravno:obavesti', ['--limit' => 1])->expectsOutputToContain('preostalo: 0.')->assertSuccessful();
 
         Mail::assertSent(IzmenaUslovaMail::class, 2);
+    }
+
+    public function test_ne_salje_ako_je_do_stupanja_na_snagu_manje_od_15_dana(): void
+    {
+        $this->spremanKorisnik();
+        $this->novaVerzija();
+
+        $this->travelTo(CarbonImmutable::parse('2026-10-22 08:00', 'Europe/Belgrade'));
+        $this->artisan('pravno:obavesti', ['--proba' => true])
+            ->expectsOutputToContain('ostalo je 14 dana')
+            ->assertSuccessful();
+        $this->artisan('pravno:obavesti')->expectsOutputToContain('Ništa nije poslato.')->assertFailed();
+        Mail::assertNothingSent();
+
+        $this->travelTo(CarbonImmutable::parse('2026-10-21 23:00', 'Europe/Belgrade'));
+        $this->artisan('pravno:obavesti')->expectsOutputToContain('Poslato: 1')->assertSuccessful();
+    }
+
+    public function test_bez_ikoga_za_obavestavanje_rok_nije_greska(): void
+    {
+        $this->novaVerzija();
+        $this->spremanKorisnik();
+
+        // Svi su već prihvatili novu verziju, pa dnevni scheduler ne prijavljuje grešku ni posle roka.
+        $this->travelTo(CarbonImmutable::parse('2026-11-04 09:00', 'Europe/Belgrade'));
+        $this->artisan('pravno:obavesti')->expectsOutputToContain('Poslato: 0')->assertSuccessful();
+    }
+
+    public function test_scheduler_salje_obavestenje_svakog_jutra(): void
+    {
+        $dogadjaj = collect(app(Schedule::class)->events())
+            ->first(fn ($dogadjaj) => str_contains((string) $dogadjaj->command, 'pravno:obavesti'));
+
+        $this->assertNotNull($dogadjaj);
+        $this->assertSame('0 9 * * *', $dogadjaj->expression);
+        $this->assertSame('Europe/Belgrade', $dogadjaj->timezone);
     }
 
     public function test_mejl_navodi_datum_izmene_i_linkove(): void

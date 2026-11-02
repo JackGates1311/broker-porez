@@ -1,0 +1,138 @@
+BrokerPorez – nova verzija Uslova korišćenja i Politike privatnosti
+==================================================================
+
+Kratko: izmeni tekst, u config/pravno.php promeni 'verzija', 'vazi_od' i 'izmene',
+pokreni lokalno --proba, pa push. Obaveštenje mejlom šalje scheduler sam, sledećeg
+jutra u 09:00.
+
+
+Kada je potrebna nova verzija
+-----------------------------
+
+Nova verzija (sa obaveštenjem i ponovnim prihvatanjem) je potrebna kad se nešto
+suštinski menja, na primer:
+  - novi obrađivač podataka (servis kome se šalju podaci: mejl, hosting, analitika...)
+  - nova vrsta podataka koji se prikupljaju ili nova svrha obrade
+  - promena roka čuvanja, lokacije servera ili rukovaoca
+  - nova prava i obaveze korisnika (npr. plaćanje, komercijalizacija)
+
+Za slovne greške, preformulisanje bez promene smisla ili novi link: samo izmeni
+tekst, bez promene 'verzija'. Korisnici tada ne dobijaju mejl i ne prihvataju ponovo.
+
+
+Gde je šta
+----------
+
+  resources/views/pravno/_uslovi.blade.php     tekst Uslova korišćenja
+  resources/views/pravno/_politika.blade.php   tekst Politike privatnosti
+                                               (oba se prikazuju i kao stranice i u
+                                               modalima na koraku Poreski obaveznik)
+  config/pravno.php                            verzija, vazi_od, izmene, rukovalac,
+                                               obrađivači, lokacija servera
+  resources/views/emails/izmena-uslova.blade.php   mejl obaveštenja
+
+
+Koraci
+------
+
+1. Izmeni tekst u _uslovi.blade.php i/ili _politika.blade.php. Novi obrađivač ide u
+   config/pravno.php -> 'obradjivaci' (spisak u politici se pravi iz njega).
+
+2. U config/pravno.php:
+
+     'verzija' => '2027-03-01',     novi niz, različit od prethodnog; po konvenciji
+                                    datum stupanja na snagu (Y-m-d)
+     'vazi_od' => '2027-03-01',     NAJMANJE 15 dana posle SUTRAŠNJEG dana, jer
+                                    mejlovi kreću tek sledećeg jutra u 09:00.
+                                    Ako šalješ više od 200 mejlova, dodaj po dan
+                                    za svakih 200 (dnevni limit).
+     'izmene' => [                  kratke stavke za mejl, šta je novo u odnosu na
+         'Novi obrađivač: ...',     prethodnu verziju. ZAMENI prethodne stavke, ne
+     ],                             dopisuj na stare.
+
+3. Lokalno proveri:
+
+     php artisan pravno:obavesti --proba
+
+   Ispis: koliko bi korisnika dobilo mejl i datum stupanja na snagu. Ako piše
+   "ostalo je X dana ... Pomerite 'vazi_od'", rok je prekratak.
+   Izgled mejla: lokalno je MAIL_MAILER=log, pa pokretanje bez --proba upiše mejlove
+   u storage/logs/laravel-<datum>.log (samo na lokalnoj bazi!).
+
+4. Commit i push na main. Sačekaj zeleni CI i deploy (mejl stiže samo ako ne uspe).
+   SQL fajl nije potreban: verzija nije u bazi.
+
+5. Šta se dalje dešava samo:
+   - sledećeg jutra u 09:00 scheduler pokreće pravno:obavesti --limit=200 i šalje mejl
+     svim verifikovanim korisnicima koji nisu prihvatili novu verziju; ako ih ima više
+     od 200, nastavlja sledećih dana
+   - obavešteni korisnik se pamti (korisnici.uslovi_obavesten_verzija), pa niko ne
+     dobija isti mejl dvaput; novi korisnici odmah prihvataju novu verziju
+   - do 'vazi_od' važi i ranije prihvaćena verzija, korisnici rade normalno
+   - od 'vazi_od' (ponoć po beogradskom vremenu) korisnik koji nije prihvatio novu
+     verziju se pri ulasku u knjigu šalje na korak Poreski obaveznik da čekira
+     prihvatanje
+   - svako prihvatanje je novi red u tabeli prihvatanja_uslova (dokaz pristanka)
+
+6. Provera na serveru, posle 09:00 narednog dana:
+
+     cd /var/www/broker_porez
+     sudo -u www-data php artisan pravno:obavesti --proba
+
+   Treba da pokaže 0 korisnika (ili koliko je ostalo zbog limita). Ako je slanje
+   palo, ispis je stigao mejlom na PODRSKA_EMAIL (Zoho sanduče).
+
+
+Ako je rok prekratak
+--------------------
+
+Komanda tada ne šalje ništa i vraća grešku (mejl na PODRSKA_EMAIL). Pomeri 'vazi_od'
+u config/pravno.php i uradi push; slanje kreće sledećeg jutra.
+
+Ako je deo korisnika već dobio mejl sa starim datumom (npr. rok je pomeren usred
+slanja), oni ne bi dobili ispravku. Tada promeni i 'verzija' (npr. dodaj sufiks:
+'2027-03-01b'), pa svi dobiju novi mejl sa ispravnim datumom.
+
+
+Ručno pokretanje (hitno, ili da ne čekaš 09:00)
+-----------------------------------------------
+
+Uvek kao www-data, nikad kao root (root napravi log fajl u koji PHP-FPM ne može da
+piše):
+
+    sudo -u www-data php artisan pravno:obavesti --proba
+    sudo -u www-data php artisan pravno:obavesti --limit=200
+
+Pazi: "php artisan help pravno:obavesti --proba" samo ispisuje pomoć, ne pokreće
+komandu.
+
+
+Dokaz pristanka
+---------------
+
+Tabela prihvatanja_uslova (sql/pravno/prihvatanja_uslova.sql) čuva svako prihvatanje:
+korisnik, verzija, vreme (UTC). Na nalogu (korisnici.uslovi_verzija,
+uslovi_prihvaceni_at) je samo poslednje, i to aplikacija čita kad proverava pristup.
+
+Ko je kada prihvatio koju verziju (samo čitanje):
+
+    SELECT k.korisnicko_ime, p.verzija, p.kreirano_at
+    FROM prihvatanja_uslova p JOIN korisnici k ON k.id = p.korisnik_id
+    ORDER BY p.kreirano_at DESC;
+
+Korisnik vidi svoju istoriju u Moj nalog -> Preuzmi moje podatke (prihvatanja_uslova).
+Brisanjem naloga se briše i istorija (BrisanjeNalogaService).
+IP adresa i pregledač se ne čuvaju; ako zatrebaju (npr. pri komercijalizaciji), to je
+nova vrsta podataka, dakle nova verzija politike po ovom postupku.
+
+
+Zašto ovako
+-----------
+
+  - Ćutanje nije prihvatanje (Zakon o obligacionim odnosima, čl. 42), zato korisnik
+    mora da čekira prihvatanje, mejl je samo obaveštenje.
+  - Rok od najmanje 15 dana je obećan u samim uslovima i politici ("Izmene politike").
+  - GDPR čl. 7(1) / ZZPL: rukovalac mora da može da dokaže pristanak, zato istorija
+    prihvatanja.
+  - Tekst je u git-u, a ne u bazi: prolazi kroz CI i deploy, a git istorija je arhiva
+    svih ranijih verzija (git log -p resources/views/pravno/).

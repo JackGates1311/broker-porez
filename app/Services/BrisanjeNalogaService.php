@@ -17,6 +17,7 @@ class BrisanjeNalogaService
         'prilozi_poruka_podrske',
         'poruke_podrske',
         'ocene_zadovoljstva',
+        'prihvatanja_uslova',
         'alokacije_lotova_prodaje',
         'poreski_lotovi',
         'transakcije',
@@ -117,6 +118,15 @@ class BrisanjeNalogaService
                     'komentar' => $ocena->komentar,
                     'povod' => $ocena->povod,
                     'kreirano_at' => $ocena->kreirano_at?->toIso8601String(),
+                ])
+                ->all(),
+            'prihvatanja_uslova' => $korisnik->prihvatanjaUslova()
+                ->orderBy('kreirano_at')
+                ->orderBy('id')
+                ->get()
+                ->map(fn ($prihvatanje) => [
+                    'verzija' => $prihvatanje->verzija,
+                    'kreirano_at' => $prihvatanje->kreirano_at?->toIso8601String(),
                 ])
                 ->all(),
         ];
