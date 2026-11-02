@@ -26,7 +26,11 @@ IZGRADNJA = re.compile(r'to_json\(|build_from_json|save_manifest|\bgraphify\s+(u
 FAJLOVI_GRAFA = re.compile(r'graphify-out/(graph\.json|GRAPH_REPORT\.md)')
 # Stvarno pokretanje graphify-ja: CLI komanda (i posle ;, &&, |, $( ) ili Python modul. Samo pominjanje
 # (git add docs/graphify.txt, grep graphify) se ne računa.
-POKRECE_GRAPHIFY = re.compile(r'(^|[;&|(]|\$\()\s*graphify\s|\b(from|import)\s+graphify\b|-m\s+graphify\b')
+POKRECE_GRAPHIFY = re.compile(r'(^|[;&|(/]|\$\()\s*graphify\s|\b(from|import)\s+graphify\b|-m\s+graphify\b')
+
+# Graphify je instaliran samo u projektnom .venv (ne globalno).
+VENV_PYTHON = Path('.venv/bin/python3')
+LOKALNI_GRAPHIFY = '.venv/bin/graphify'
 
 
 def vrsta_poziva(ulaz: dict) -> str | None:
@@ -52,7 +56,7 @@ def vrsta_poziva(ulaz: dict) -> str | None:
 
 def trenutni_fajlovi(koren: Path, graf: Path) -> set[str]:
     """Isti skup fajlova koji graphify obrađuje (detect sa njegovim izuzecima), relativne putanje."""
-    python = (graf / '.graphify_python').read_text(encoding='utf-8').strip()
+    python = str(koren / VENV_PYTHON)
     skripta = (
         'import json\n'
         'from pathlib import Path\n'
@@ -141,8 +145,14 @@ def pre_alata(ulaz: dict, koren: Path, dozvola: Path) -> None:
 
     graf = koren / 'graphify-out'
     prihvaceno = graf / '.provera_prihvacena'
-    ima_graf = (graf / 'manifest.json').is_file() and (graf / '.graphify_python').is_file()
-    stanje = zastarelost(koren, graf) if ima_graf and vrsta == 'citanje' else None
+    ima_graf = (graf / 'manifest.json').is_file() and (koren / VENV_PYTHON).is_file()
+    # Greška u proveri zastarelosti ne sme da preskoči proveru dozvole ispod.
+    try:
+        stanje = zastarelost(koren, graf) if ima_graf and vrsta == 'citanje' else None
+    except Exception:
+        stanje = None
+
+    azuriraj = f'`{LOKALNI_GRAPHIFY} update .` (samo kod, bez tokena) ili `/graphify . --update` (i dokumenti)'
     dozvoli = 'mkdir -p .claude && touch .claude/.graphify_dozvola'
 
     if not dozvola.is_file():
@@ -153,26 +163,26 @@ def pre_alata(ulaz: dict, koren: Path, dozvola: Path) -> None:
         )
         if stanje:
             opcije += (
-                f'  2. "Ažuriraj graf pa koristi": izvrši `{dozvoli}`, pokreni /graphify . --update, pa ponovi upit.\n'
+                f'  2. "Ažuriraj graf pa koristi": izvrši `{dozvoli}`, pokreni {azuriraj}, pa ponovi upit.\n'
                 f'  3. "Koristi zastareo graf": izvrši `{dozvoli} && echo {stanje[1]} > graphify-out/.provera_prihvacena`, '
                 'ponovi poziv i navedene fajlove proveri u kodu.'
             )
         else:
-            opcije += f'  2. "Koristi graphify": izvrši `{dozvoli}`, pa ponovi isti poziv.'
+            opcije += f'  2. "Koristi graphify": izvrši `{dozvoli}`, pa ponovi isti poziv uz korišćenje `{LOKALNI_GRAPHIFY}`.'
         odbij(poruka, (
             'Graphify se koristi samo uz izričitu dozvolu korisnika u ovom promptu. Pre bilo kakvog '
             'korišćenja pitaj korisnika (AskUserQuestion) da li želi graphify i zašto bi pomogao; ne upisuj '
-            'dozvolu bez njegovog odgovora. Opcije:\n' + opcije
+            f'dozvolu bez njegovog odgovora. Uvek koristi lokalnu putanju (`{LOKALNI_GRAPHIFY}`, '
+            f'`{VENV_PYTHON}`), a nikada globalnu komandu niti pip install van .venv. Opcije:\n' + opcije
         ))
         return
 
     if stanje and not (prihvaceno.is_file() and prihvaceno.read_text(encoding='utf-8').strip() == stanje[1]):
         odbij(stanje[0], (
             'Ne koristi graf pre odluke korisnika. Pitaj ga (AskUserQuestion) šta želi:\n'
-            '  1. "Ažuriraj graf": pokreni /graphify . --update (kod se čita besplatno, tokene troše samo '
-            'izmenjeni dokumenti), pa ponovi upit.\n'
+            f'  1. "Ažuriraj graf": pokreni {azuriraj}, pa ponovi upit.\n'
             f'  2. "Ipak koristi graf": izvrši `echo {stanje[1]} > graphify-out/.provera_prihvacena`, pa ponovi '
-            'isti poziv; u odgovoru naglasi da graf ne vidi gore navedene izmene i proveri te fajlove u kodu.\n'
+            f'isti poziv uz `{LOKALNI_GRAPHIFY}`; u odgovoru naglasi da graf ne vidi gore navedene izmene i proveri te fajlove u kodu.\n'
             '  3. "Preskoči graf": odgovori bez grafa (Grep/Read nad kodom).'
         ))
 

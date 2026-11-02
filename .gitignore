@@ -61,3 +61,6 @@ Thumbs.db
 
 # lokalna dozvola za graphify (.claude/hooks/graphify_provera.py)
 /.claude/.graphify_*
+
+# python .venv
+/.venv/

@@ -90,10 +90,13 @@ Kako čitati izveštaj:
 Napomene za ovaj projekat
 -------------------------
 
+  - graphify je instaliran samo u projektnom .venv (docs/venv.txt), ne globalno:
+    CLI je .venv/bin/graphify, a .venv/bin/graphify update . osvežava graf samo za
+    kod (bez LLM-a i tokena).
   - SQL fajlovi (sql/) se ne čitaju dok nije instaliran SQL parser; šema baze tada
     nije u grafu. Jednom:
 
-        pip install "graphifyy[sql]"
+        .venv/bin/pip install "graphifyy[sql]"
 
     pa /graphify . --update.
   - config/*.php nemaju klase, pa daju malo čvorova; to je očekivano.

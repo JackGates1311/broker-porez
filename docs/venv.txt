@@ -1,0 +1,11 @@
+## Podešavanje okruženja za razvoj (graphify)
+Graphify se koristi samo u ovom projektu, pa je instaliran u projektni .venv (u .gitignore),
+nikad globalno. Jednom:
+
+    python3 -m venv .venv
+    .venv/bin/pip install "graphifyy[sql]"      # paket je graphifyy (dva y); "graphify" na PyPI je drugi paket
+
+Interpreter za graphify skill je zapisan u graphify-out/.graphify_python (= .venv/bin/python3);
+ako se graphify-out/ obriše, pre /graphify aktivirati venv (source .venv/bin/activate) da skill
+ne bi pao na sistemski python3 i instalirao graphifyy globalno.
+Hook (.claude/hooks/graphify_provera.py) uvek koristi .venv/bin/python3, nezavisno od PATH-a.
