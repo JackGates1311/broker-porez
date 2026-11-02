@@ -1,0 +1,149 @@
+BrokerPorez – graphify (graf znanja o kodu)
+===========================================
+
+Kratko: /graphify . u Claude Code pravi graf celog projekta u graphify-out/.
+Posle toga pitanja o arhitekturi idu kroz /graphify query "...", a posle većih
+izmena koda graf se osvežava sa /graphify . --update.
+
+
+Šta je graphify
+---------------
+
+Skill za Claude Code koji projekat pretvara u graf znanja:
+  - kod (PHP, TS, JSON, YAML...) se čita strukturno (AST): klase, metode, pozivi,
+    importi; besplatno i brzo, bez LLM-a
+  - dokumenti (CLAUDE.md, docs/*.txt, spec-ovi) i slike se čitaju semantički,
+    preko Claude subagenata; to troši tokene (prvo pokretanje ~280.000)
+  - čvorovi se grupišu u zajednice (npr. "Ručni CSV uvoz", "Izvoz obrazaca",
+    "FIFO kalkulator"), a izveštaj ističe najpovezanije čvorove i "mostove"
+    između delova sistema
+
+Svaka grana nosi poreklo: EXTRACTED (piše u kodu/dokumentu), INFERRED (zaključak,
+uz ocenu 0.55–0.95) ili AMBIGUOUS (nesigurno, za proveru).
+
+
+Kada se koristi (a kada ne)
+---------------------------
+
+Isplati se:
+  - kad treba razumeti kako delovi sistema zavise jedan od drugog, npr. "kuda sve
+    prolazi TipTransakcije", "šta sve dira Korisnik", "kako se uvoz vezuje za FIFO"
+  - pre većeg refaktorisanja: koje zajednice su slabo povezane (niska cohesion,
+    kandidat za podelu), koji čvor je most koji bi izmena pokvarila
+  - kad se postavlja više pitanja o istom delu koda zaredom (graf se pravi jednom,
+    pitanja su posle jeftina)
+  - veza dokumentacija <-> kod (npr. šta iz CLAUDE.md opisuje koju klasu)
+
+Ne isplati se:
+  - jedno konkretno pitanje tipa "gde je definisana metoda X" ili "ko poziva Y":
+    grep / pretraga u IDE-u je brža i besplatna
+  - male izmene u jednom fajlu
+  - pitanja o podacima u bazi (graf zna samo kod i dokumente, ne sadržaj baze)
+
+
+Komande (kucaju se u Claude Code)
+---------------------------------
+
+  /graphify .                        ceo projekat od nule (prvi put, ili posle
+                                     velikih izmena kad --update ne pomaže)
+  /graphify . --update               samo novi/izmenjeni fajlovi (keš za ostale);
+                                     koristiti posle svakog većeg commit-a
+  /graphify . --no-viz               bez graph.html, samo izveštaj i JSON
+  /graphify . --cluster-only         samo ponovo grupiše postojeći graf
+
+  /graphify query "pitanje"          odgovor iz grafa (šira okolina pojma)
+  /graphify query "pitanje" --dfs    prati jedan konkretan put
+  /graphify path "UvozService" "FifoService"
+                                     najkraći put između dva pojma
+  /graphify explain "PodesavanjaUvoza"
+                                     objašnjenje jednog čvora i njegovih veza
+
+Pitanja mogu na srpskom ili engleskom; najbolje je navesti tačna imena klasa i
+metoda, jer su čvorovi grafa imenovani po njima.
+
+Kad graphify-out/graph.json postoji, Claude za pitanja o arhitekturi može sam da
+koristi graf, bez ponovnog pravljenja.
+
+
+Šta se dobija (graphify-out/)
+-----------------------------
+
+  graph.html          interaktivni graf; otvoriti u pregledaču (bez servera),
+                      boje su zajednice, klik na čvor pokazuje veze
+  GRAPH_REPORT.md     izveštaj: God Nodes (najpovezaniji), Surprising
+                      Connections, zajednice sa cohesion ocenom, Knowledge Gaps
+                      (izolovani čvorovi) i predložena pitanja
+  graph.json          sirovi graf (za query/path/explain i druge alate)
+  cost.json           potrošnja tokena po pokretanju
+  cache/, manifest    keš za --update (ne brisati ako se koristi --update)
+
+Kako čitati izveštaj:
+  - God Nodes: centralne apstrakcije (ovde Korisnik, Kolona, TipTransakcije,
+    Transakcija, Tabela, Decimal). Izmena njih ima najširi uticaj.
+  - Cohesion (0–1): koliko su čvorovi zajednice međusobno povezani. Ispod ~0.06
+    znači labavu grupu (npr. "Izvoz obrazaca (PDF/XML)").
+  - Betweenness u predloženim pitanjima: čvor koji spaja mnogo zajednica (most).
+  - Knowledge Gaps: čvorovi sa ≤1 vezom; često enum vrednosti ili config nizovi,
+    nije nužno problem.
+
+
+Napomene za ovaj projekat
+-------------------------
+
+  - SQL fajlovi (sql/) se ne čitaju dok nije instaliran SQL parser; šema baze tada
+    nije u grafu. Jednom:
+
+        pip install "graphifyy[sql]"
+
+    pa /graphify . --update.
+  - config/*.php nemaju klase, pa daju malo čvorova; to je očekivano.
+  - .env.testing i .npmrc graphify preskače kao osetljive fajlove (dobro je tako).
+  - Blade šabloni ulaze kao PHP; veze su uglavnom @include (npr. obrasci/_kucice).
+  - Prvo pokretanje (2.11.2026.): 1.660 čvorova, 3.428 grana, 164 zajednice.
+  - Health check može da prijavi "collapsed edges": to su ponovljeni @include
+    istog parcijala, ne gubitak podataka.
+  - graphify-out/ je u .gitignore: graf je lokalan i pravi se ponovo komandom
+    /graphify . (ili --update), ne deli se preko git-a.
+
+  - Gemini ključ nije potreban. Ako je postavljen GEMINI_API_KEY ili
+    GOOGLE_API_KEY, semantički deo radi Gemini umesto Claude subagenata.
+
+
+Provera zastarelog grafa (hook)
+-------------------------------
+
+Graf se ne osvežava sam, pa star graf može da navede Claude-a na pogrešan
+zaključak (ne vidi nove klase, a obrisane još postoje). Zato projekat ima hook:
+
+  .claude/settings.json                 PreToolUse hook (Bash, Read, Grep)
+  .claude/hooks/graphify_provera.py     provera
+
+Svaki put kad Claude čita graf (graphify query/path/explain/affected/god-nodes,
+ili graph.json / GRAPH_REPORT.md), hook uporedi fajlove projekta sa
+graphify-out/manifest.json (isti skup fajlova koji graphify obrađuje, sadržaj po
+md5). Ako se nešto razlikuje, poziv se odbija, prikazuje se upozorenje sa spiskom
+izmenjenih, novih i obrisanih fajlova, i Claude pita šta dalje:
+
+  1. Ažuriraj graf     /graphify . --update, pa isti upit
+  2. Ipak koristi graf otisak trenutnih razlika se upisuje u
+                       graphify-out/.provera_prihvacena; isto pitanje se ne ponavlja
+                       dok se kod opet ne promeni, a Claude navedene fajlove
+                       proverava u kodu
+  3. Preskoči graf     odgovor bez grafa (pretraga i čitanje koda)
+
+Hook ne radi ništa kad graf ne postoji, za ostale komande, za samo pravljenje i
+ažuriranje grafa, i pri sopstvenoj grešci (nikad ne blokira rad zbog sebe).
+Provera traje oko pola sekunde.
+
+Isključivanje: /hooks u Claude Code, ili brisanje unosa iz .claude/settings.json.
+Posle izmene .claude/settings.json treba otvoriti /hooks ili restartovati sesiju.
+
+
+Tipičan tok
+-----------
+
+  1. Prvi put:            /graphify .
+  2. Pogledati:           graphify-out/graph.html i GRAPH_REPORT.md
+  3. Pitanja:             /graphify query "kako TipTransakcije prolazi od uvoza do PPDG-3R"
+                          /graphify path "Trading212CsvParser" "Ppdg3rXml"
+  4. Posle većih izmena:  /graphify . --update

@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Read|Grep",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/graphify_provera.py\"",
+            "timeout": 30,
+            "statusMessage": "Provera graphify grafa..."
+          }
+        ]
+      }
+    ]
+  }
+}

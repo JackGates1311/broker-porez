@@ -55,3 +55,6 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# graphify graf znanja (docs/graphify.txt), lokalno, ne deli se
+/graphify-out/
