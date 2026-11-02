@@ -38,7 +38,7 @@
             "composer install",
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
             "@php artisan key:generate",
-            "@php artisan migrate --force",
+            "@php -r \"echo PHP_EOL.'Šema baze nije u migracijama: primenite sql/ fajlove redom iz sql/redosled.txt.'.PHP_EOL.PHP_EOL;\"",
             "npm install --ignore-scripts",
             "npm run build"
         ],

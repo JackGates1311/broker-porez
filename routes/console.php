@@ -15,3 +15,7 @@ Schedule::command('zadovoljstvo:izvestaj --mejl')->monthlyOn(1, '08:00')->timezo
 // Limit ostavlja deo Brevo dnevne kvote za kodove za verifikaciju; neuspeh (i prekratak rok) stiže mejlom.
 Schedule::command('pravno:obavesti --limit=200')->dailyAt('09:00')->timezone('Europe/Belgrade')
     ->withoutOverlapping()->emailOutputOnFailure(config('podrska.email'));
+
+// Poruke podrške koje nisu otišle (npr. Brevo nije radio) šalje ponovo. Neuspeh se ne javlja mejlom,
+// jer bi išao istim putem koji ne radi; detalji su u storage/logs.
+Schedule::command('podrska:posalji-neposlate')->hourly()->withoutOverlapping();

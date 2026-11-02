@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Mail\PodrskaMail;
 use App\Models\Korisnik;
 use App\Models\PorukaPodrske;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Routing\Middleware\ThrottleRequests;
@@ -245,5 +246,14 @@ class PodrskaTest extends TestCase
 
         $this->assertNotNull(PorukaPodrske::sole()->poslato_at);
         Mail::assertSent(PodrskaMail::class, 1);
+    }
+
+    public function test_scheduler_svakog_sata_salje_neposlate_poruke(): void
+    {
+        $dogadjaj = collect(app(Schedule::class)->events())
+            ->first(fn ($dogadjaj) => str_contains((string) $dogadjaj->command, 'podrska:posalji-neposlate'));
+
+        $this->assertNotNull($dogadjaj);
+        $this->assertSame('0 * * * *', $dogadjaj->expression);
     }
 }

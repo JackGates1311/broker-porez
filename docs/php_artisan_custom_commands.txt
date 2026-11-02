@@ -88,6 +88,7 @@ Napomene:
     storage/logs/laravel*.log.
   - Ispis: "Poslato: N, neuspešno: M." Vraća FAILURE ako je bar jedna neuspešna.
   - Slanje radi App\Services\PodrskaService::posalji().
+  - Zakazana je svakog sata (vidi ispod), pa se ručno pokreće samo kad ne želiš da čekaš.
 
 
 4. zadovoljstvo:izvestaj
@@ -133,6 +134,11 @@ Zakazane komande (routes/console.php)
   Šalje obaveštenje o novoj verziji uslova onima koji ga još nisu dobili, do 200 dnevno
   (ostatak Brevo kvote ostaje za kodove za verifikaciju). Kad su svi obavešteni, ne šalje
   ništa. Ako ne uspe (ili je rok kraći od 15 dana), ispis stiže mejlom na PODRSKA_EMAIL.
+
+  Schedule::command('podrska:posalji-neposlate')->hourly()->withoutOverlapping();
+
+  Svakog sata ponovo šalje poruke podrške koje nisu otišle. Neuspeh se ne javlja mejlom
+  (išao bi istim putem koji ne radi); detalji su u storage/logs.
 
   Radi samo ako cron na serveru svake minute pokreće scheduler:
     * * * * * cd /putanja/do/aplikacije && php artisan schedule:run >> /dev/null 2>&1

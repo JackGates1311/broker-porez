@@ -70,6 +70,9 @@ return [
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
             'max_files' => env('LOG_DAILY_DAYS', 14),
+            // Upisiv i za grupu: dnevni fajl koji napravi artisan pokrenut kao root (u grupi www-data,
+            // jer deploy postavlja setgid na storage/logs) PHP-FPM i dalje može da dopunjava.
+            'permission' => 0664,
             'replace_placeholders' => true,
         ],
 

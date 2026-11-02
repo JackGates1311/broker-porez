@@ -44,6 +44,10 @@ Trenutni zadaci
                                   kraći od 15 dana stiže mejlom na PODRSKA_EMAIL
                                   (postupak: docs/nova_verzija_uslova.txt)
 
+  podrska:posalji-neposlate       svakog sata
+                                  ponovo šalje poruke podrške koje nisu otišle
+                                  (poslato_at = NULL); kad ih nema, ne radi ništa
+
 Opis komandi: docs/php_artisan_custom_commands.txt
 
 
@@ -140,6 +144,10 @@ Greška "Permission denied" za storage/logs:
   - neko je pokrenuo artisan kao root i napravio log fajl; ispravka:
     chown -R www-data:www-data /var/www/broker_porez/storage /var/www/broker_porez/bootstrap/cache
   - deploy to sam radi na kraju (chown u .github/workflows/deploy.yml)
+  - od 2.11.2026. ovo ne bi trebalo da se dešava: deploy postavlja setgid na storage/logs
+    (novi fajl dobija grupu www-data), a dnevni log se pravi sa dozvolama 0664
+    (config/logging.php), pa www-data može da piše i u fajl koji je napravio root.
+    Provera: ls -l storage/logs (fajlovi -rw-rw-r-- ... www-data, direktorijum drwxrwsr-x)
 
 Lokalni razvoj:
   - php artisan schedule:work u posebnom terminalu (cron lokalno nije potreban)
